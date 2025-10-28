@@ -5,6 +5,7 @@ services:
     region: oregon
     plan: free
     branch: main
+    rootDir: backend
     buildCommand: "pip install -r requirements.txt"
     startCommand: "gunicorn config.wsgi:application"
     envVars:
