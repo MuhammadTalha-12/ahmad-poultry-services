@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Box, Button, TextField, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Paper, Grid } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { Box, Button, TextField, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Paper } from '@mui/material';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../services/api';
-import { Purchase, PaginatedResponse } from '../types';
+import type { Purchase, PaginatedResponse } from '../types';
 
 export default function Purchases() {
   const [open, setOpen] = useState(false);
@@ -65,23 +65,15 @@ export default function Purchases() {
         <form onSubmit={handleSubmit}>
           <DialogTitle>Add New Purchase</DialogTitle>
           <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required InputLabelProps={{ shrink: true }} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Supplier" value={formData.supplier} onChange={(e) => setFormData({ ...formData, supplier: e.target.value })} />
-              </Grid>
-              <Grid item xs={6}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField fullWidth label="Date" type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required InputLabelProps={{ shrink: true }} />
+              <TextField fullWidth label="Supplier" value={formData.supplier} onChange={(e) => setFormData({ ...formData, supplier: e.target.value })} />
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <TextField fullWidth label="KG" type="number" value={formData.kg} onChange={(e) => setFormData({ ...formData, kg: e.target.value })} required inputProps={{ step: '0.001' }} />
-              </Grid>
-              <Grid item xs={6}>
                 <TextField fullWidth label="Cost Rate per KG" type="number" value={formData.cost_rate_per_kg} onChange={(e) => setFormData({ ...formData, cost_rate_per_kg: e.target.value })} required inputProps={{ step: '0.001' }} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Note" value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} multiline rows={2} />
-              </Grid>
-            </Grid>
+              </Box>
+              <TextField fullWidth label="Note" value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} multiline rows={2} />
+            </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>Cancel</Button>

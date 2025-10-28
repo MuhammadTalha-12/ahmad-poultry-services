@@ -1,15 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   Box,
-  Grid,
   Paper,
   Typography,
   Card,
   CardContent,
 } from '@mui/material';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
-import { DailyReport } from '../types';
+import type { DailyReport } from '../types';
 
 export default function Dashboard() {
   const today = new Date().toISOString().split('T')[0];
@@ -48,32 +46,16 @@ export default function Dashboard() {
         Today's Overview - {today}
       </Typography>
 
-      <Grid container spacing={3} sx={{ mt: 2 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Sales (kg)" value={todayReport?.sales_kg || '0'} unit="kg" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Revenue" value={Number(todayReport?.sales_revenue || 0).toFixed(2)} unit="PKR" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Profit" value={Number(todayReport?.profit || 0).toFixed(2)} unit="PKR" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Cash Received" value={Number(todayReport?.cash_received || 0).toFixed(2)} unit="PKR" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Purchases (kg)" value={todayReport?.purchases_kg || '0'} unit="kg" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Purchase Cost" value={Number(todayReport?.purchases_cost || 0).toFixed(2)} unit="PKR" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Expenses" value={Number(todayReport?.expenses_total || 0).toFixed(2)} unit="PKR" />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard title="Stock" value={todayReport?.closing_stock || '0'} unit="kg" />
-        </Grid>
-      </Grid>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3, mt: 2 }}>
+        <StatCard title="Sales (kg)" value={todayReport?.sales_kg || '0'} unit="kg" />
+        <StatCard title="Revenue" value={Number(todayReport?.sales_revenue || 0).toFixed(2)} unit="PKR" />
+        <StatCard title="Profit" value={Number(todayReport?.profit || 0).toFixed(2)} unit="PKR" />
+        <StatCard title="Cash Received" value={Number(todayReport?.cash_received || 0).toFixed(2)} unit="PKR" />
+        <StatCard title="Purchases (kg)" value={todayReport?.purchases_kg || '0'} unit="kg" />
+        <StatCard title="Purchase Cost" value={Number(todayReport?.purchases_cost || 0).toFixed(2)} unit="PKR" />
+        <StatCard title="Expenses" value={Number(todayReport?.expenses_total || 0).toFixed(2)} unit="PKR" />
+        <StatCard title="Stock" value={todayReport?.closing_stock || '0'} unit="kg" />
+      </Box>
 
       <Paper sx={{ mt: 4, p: 3 }}>
         <Typography variant="h6" gutterBottom>

@@ -11,10 +11,10 @@ import {
   DialogActions,
   Paper,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../services/api';
-import { Customer, PaginatedResponse } from '../types';
+import type { Customer, PaginatedResponse } from '../types';
 
 export default function Customers() {
   const [open, setOpen] = useState(false);

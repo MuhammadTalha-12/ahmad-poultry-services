@@ -11,12 +11,11 @@ import {
   DialogActions,
   Paper,
   MenuItem,
-  Grid,
 } from '@mui/material';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import api from '../services/api';
-import { Sale, Customer, PaginatedResponse } from '../types';
+import type { Sale, Customer, PaginatedResponse } from '../types';
 
 export default function Sales() {
   const [open, setOpen] = useState(false);
@@ -112,8 +111,8 @@ export default function Sales() {
         <form onSubmit={handleSubmit}>
           <DialogTitle>Add New Sale</DialogTitle>
           <DialogContent>
-            <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                 <TextField
                   fullWidth
                   label="Date"
@@ -123,8 +122,6 @@ export default function Sales() {
                   required
                   InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   select
@@ -139,8 +136,6 @@ export default function Sales() {
                     </MenuItem>
                   ))}
                 </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="KG"
@@ -150,8 +145,6 @@ export default function Sales() {
                   required
                   inputProps={{ step: '0.001' }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Sale Rate per KG"
@@ -161,8 +154,6 @@ export default function Sales() {
                   required
                   inputProps={{ step: '0.001' }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Cost Rate Snapshot"
@@ -172,8 +163,6 @@ export default function Sales() {
                   required
                   inputProps={{ step: '0.001' }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Amount Received"
@@ -182,23 +171,19 @@ export default function Sales() {
                   onChange={(e) => setFormData({ ...formData, amount_received: e.target.value })}
                   inputProps={{ step: '0.001' }}
                 />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Note"
-                  value={formData.note}
-                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                  multiline
-                  rows={2}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">
-                  Total Amount: <strong>{totalAmount} PKR</strong>
-                </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+              <TextField
+                fullWidth
+                label="Note"
+                value={formData.note}
+                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                multiline
+                rows={2}
+              />
+              <Typography variant="body2" color="text.secondary">
+                Total Amount: <strong>{totalAmount} PKR</strong>
+              </Typography>
+            </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>Cancel</Button>
