@@ -67,13 +67,14 @@ export default function Login() {
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <TextField
               fullWidth
-              label="Email"
-              type="email"
+              label="Username"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               margin="normal"
               required
               autoFocus
+              placeholder="Enter your username"
             />
             <TextField
               fullWidth
@@ -100,10 +101,13 @@ export default function Login() {
                 <strong>Demo Credentials:</strong>
               </Typography>
               <Typography variant="caption" display="block">
-                Admin: admin@example.com / Admin@123
+                Admin: <strong>admin</strong> / Admin@123
               </Typography>
               <Typography variant="caption" display="block">
-                User: user@example.com / User@123
+                User: <strong>user</strong> / User@123
+              </Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 1, color: 'text.secondary' }}>
+                (Enter username, not email)
               </Typography>
             </Box>
           </Box>
