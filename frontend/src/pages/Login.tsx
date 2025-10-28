@@ -29,7 +29,12 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.detail 
+        || err.response?.data?.message
+        || err.message
+        || 'Login failed. Please check your credentials and ensure the backend is running.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

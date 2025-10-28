@@ -12,6 +12,7 @@ from sales.views import (
 from reports.views import (
     DailyReportView, PeriodReportView, ExpenseReportView, CustomerReportView
 )
+from .views import api_root
 
 # Create router for viewsets
 router = DefaultRouter()
@@ -23,6 +24,9 @@ router.register(r'payments', PaymentViewSet, basename='payment')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
 
 urlpatterns = [
+    # Root API endpoint
+    path('', api_root, name='api-root'),
+    
     path('admin/', admin.site.urls),
     
     # API Authentication

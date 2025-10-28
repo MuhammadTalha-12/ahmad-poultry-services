@@ -18,7 +18,11 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await api.post('/api/auth/login/', { email, password });
+          // Django JWT expects 'username' field, so we send email as username
+          const response = await api.post('/api/auth/login/', { 
+            username: email, 
+            password 
+          });
           const { access, refresh } = response.data;
 
           localStorage.setItem('access_token', access);
@@ -26,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
 
           set({ isAuthenticated: true, user: { username: email, email } });
         } catch (error) {
+          console.error('Login error:', error);
           throw error;
         }
       },
