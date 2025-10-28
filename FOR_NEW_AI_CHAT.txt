@@ -1,0 +1,163 @@
+=====================================================
+📋 PASTE THIS AT START OF NEW AI CHAT
+=====================================================
+
+I have a fully deployed full-stack web application called "Ahmad Poultry Services" that manages chicken supply operations. Here's the complete context:
+
+=== PROJECT STATUS ===
+✅ FULLY DEPLOYED & OPERATIONAL
+- Live Frontend: https://ahmad-poultry-services.netlify.app
+- Live Backend: https://ahmad-poultery-backend.onrender.com
+- GitHub Repo: https://github.com/MuhammadTalha-12/ahmad-poultry-services
+- Login: admin / Admin@123
+
+=== ARCHITECTURE ===
+MONOREPO with:
+- Frontend: React 18 + Vite 7 + TypeScript 5 + Material-UI 6 + TailwindCSS 4
+- Backend: Django 5 + Django REST Framework 3.14 + PostgreSQL
+- Auth: JWT via djangorestframework-simplejwt
+- Deploy: Netlify (frontend), Render (backend), Neon.tech (database)
+- CI/CD: Auto-deploy on push to GitHub main branch
+- Monitoring: UptimeRobot pings backend every 10 min (prevents free tier spin-down)
+
+=== STRUCTURE ===
+ahmad-poultry-services/
+├── backend/              Django REST API
+│   ├── config/          Settings, URLs
+│   ├── accounts/        Auth
+│   ├── sales/           Models (Customer, Sale, Purchase, Payment, Expense, DailyRate)
+│   ├── reports/         Report endpoints
+│   ├── build.sh        Automated deployment script
+│   └── requirements.txt
+├── frontend/            React SPA
+│   ├── src/
+│   │   ├── pages/      Dashboard, Customers, Sales, Purchases, Payments, Expenses, Reports, Login
+│   │   ├── services/   API client (Axios)
+│   │   └── stores/     Auth store (Zustand)
+│   └── package.json
+└── netlify.toml
+
+=== KEY FEATURES ===
+✅ Customer management (25 sample customers)
+✅ Daily rate tracking (cost & sale price per kg)
+✅ Purchase tracking from poultry farms
+✅ Sales management (auto-calculate totals, profit, borrow)
+✅ Payment collection
+✅ Expense tracking (van, feed, salary, petrol, etc.)
+✅ Reports (daily, period, customer statements, expense)
+✅ Search, filter, pagination on all lists
+✅ 30 days of sample transaction data (Sept 28 - Oct 27, 2025)
+
+=== BUSINESS LOGIC ===
+- Sale total = kg × sale_rate_per_kg
+- Borrow = total - amount_received
+- Profit = kg × (sale_rate - cost_rate)
+- Customer balance = opening_balance + Σ(sales) - Σ(payments)
+- Stock = Σ(purchases.kg) - Σ(sales.kg)
+
+=== API ENDPOINTS ===
+Base: https://ahmad-poultery-backend.onrender.com
+- POST /api/auth/login/ (JWT login)
+- POST /api/auth/refresh/
+- /api/customers/ (CRUD + search)
+- /api/sales/ (CRUD + date filter)
+- /api/purchases/ (CRUD)
+- /api/payments/ (CRUD)
+- /api/expenses/ (CRUD + category filter)
+- /api/daily-rates/ (CRUD)
+- /api/reports/daily/ (daily summary)
+- /api/reports/period/ (period with breakdown)
+- /api/reports/expenses/ (expense report)
+- /api/customers/{id}/report/ (customer statement)
+Interactive docs: /api/docs/ (Swagger UI)
+
+=== DEPLOYMENT ===
+Backend (Render):
+- Root Dir: backend
+- Build: chmod +x build.sh && ./build.sh
+- Start: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+- Env vars: DATABASE_URL (Neon), ALLOWED_HOSTS, CORS_ALLOWED_ORIGINS, DEBUG=False
+- Auto-deploy on push to main
+- build.sh: pip install → migrate → create superuser → seed data → collectstatic
+
+Frontend (Netlify):
+- Base Dir: frontend
+- Build: npm run build
+- Publish: dist
+- Env var: VITE_API_BASE_URL=https://ahmad-poultery-backend.onrender.com
+- Auto-deploy on push to main
+
+Database:
+- Neon.tech PostgreSQL 15 (free tier)
+- Connection string in Render's DATABASE_URL
+
+=== WORKFLOW ===
+1. Make changes locally (test with localhost:8000 + localhost:5173)
+2. git push origin main
+3. Wait ~7 minutes
+4. ✅ Changes auto-deploy to live site!
+
+=== LOCAL SETUP ===
+Backend:
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py seed_data
+python manage.py runserver  # localhost:8000
+
+Frontend:
+cd frontend
+npm install
+# .env: VITE_API_BASE_URL=http://localhost:8000
+npm run dev  # localhost:5173
+
+=== DOCUMENTATION ===
+The repo contains comprehensive documentation:
+- PROJECT_SUMMARY.md (1300+ lines - MASTER TECHNICAL DOC)
+- NEW_CHAT_CONTEXT.md (concise context for AI)
+- QUICK_REFERENCE.md (quick command reference)
+- QUICKSTART.md (fast local setup)
+- DEPLOYMENT_COMPLETE_GUIDE.md (full deploy walkthrough)
+- RENDER_FREE_TIER_SETUP.md (Render automated setup)
+- RENDER_TROUBLESHOOTING.md (common errors & fixes)
+- FINAL_PROJECT_STATUS.md (visual overview)
+- And 5+ more guides
+
+=== CURRENT STATE ===
+✅ All CRUD operations working
+✅ All reports functional
+✅ Authentication working
+✅ Auto-deploy configured
+✅ 25 customers + 30 days transactions seeded
+✅ Uptime monitoring active
+✅ All services live and operational
+✅ $0/month cost (all free tier)
+
+=== KNOWN ISSUES (ALL RESOLVED) ===
+✅ Render free tier spins down after 15 min → UptimeRobot pings every 10 min
+✅ First load takes 30-60 sec (cold start) → Normal, subsequent fast
+✅ CORS errors → CORS_ALLOWED_ORIGINS configured correctly
+✅ Login network errors → VITE_API_BASE_URL set correctly
+✅ TypeScript type import errors → Using type keyword or verbatimModuleSyntax: false
+✅ Gunicorn PORT binding → Added --bind 0.0.0.0:$PORT
+
+=== PENDING FEATURES (FUTURE) ===
+- PDF export (currently CSV only)
+- CSV import (templates exist, API not implemented)
+- User roles/permissions (currently admin only)
+- Email/SMS notifications
+- Unit/E2E tests
+- GitHub Actions CI/CD
+
+=== WHAT I NEED HELP WITH ===
+[Describe what you want to add/fix/improve here]
+
+=====================================================
+📚 For complete details, see PROJECT_SUMMARY.md in repo
+🚀 Live app: https://ahmad-poultry-services.netlify.app
+📖 API docs: https://ahmad-poultery-backend.onrender.com/api/docs/
+=====================================================
+
