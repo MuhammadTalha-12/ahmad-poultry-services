@@ -1,0 +1,4 @@
+date,customer_name,kg,sale_rate_per_kg,cost_rate_snapshot,amount_received,note
+2025-10-28,Ali Traders,50.500,220.000,200.000,10000.000,Regular sale
+2025-10-28,Bismillah Store,75.250,225.000,200.000,15000.000,Bulk order
+

@@ -1,0 +1,4 @@
+date,customer_name,amount,method,note
+2025-10-28,Ali Traders,5000.000,cash,Partial payment
+2025-10-28,Bismillah Store,10000.000,bank,Bank transfer
+

@@ -1,0 +1,58 @@
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run linters
+      run: |
+        cd backend
+        pip install black flake8 isort
+        black --check .
+        flake8 . --max-line-length=120 --exclude=migrations,__pycache__,.venv
+        isort --check-only .
+    
+    - name: Run tests
+      run: |
+        cd backend
+        python manage.py test
+      env:
+        DJANGO_SECRET_KEY: test-secret-key
+        DEBUG: False
+        DATABASE_URL: sqlite:///test_db.sqlite3
+    
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to Render
+      run: |
+        curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
