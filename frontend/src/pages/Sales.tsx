@@ -76,27 +76,59 @@ export default function Sales() {
 
   const createMutation = useMutation({
     mutationFn: async (newSale: any) => {
-      const response = await api.post('/api/sales/', {
-        ...newSale,
-        customer: parseInt(newSale.customer),
-        kg: parseFloat(newSale.kg),
-        sale_rate_per_kg: parseFloat(newSale.sale_rate_per_kg),
-        cost_rate_snapshot: parseFloat(newSale.cost_rate_snapshot),
-        amount_received: parseFloat(newSale.amount_received) || 0,
-      });
-      return response.data;
+      try {
+        const payload = {
+          date: newSale.date,
+          customer: parseInt(newSale.customer),
+          kg: parseFloat(newSale.kg),
+          sale_rate_per_kg: parseFloat(newSale.sale_rate_per_kg),
+          cost_rate_snapshot: parseFloat(newSale.cost_rate_snapshot),
+          amount_received: parseFloat(newSale.amount_received) || 0,
+          note: newSale.note || '',
+        };
+        console.log('Creating sale with payload:', payload);
+        const response = await api.post('/api/sales/', payload);
+        console.log('Sale created successfully:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Sale creation error:', error.response?.data);
+        throw error;
+      }
     },
     onSuccess: () => {
+      // Invalidate all related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-active'] });
       setOpen(false);
       resetForm();
       setSnackbar({ open: true, message: 'Sale created successfully!', severity: 'success' });
     },
     onError: (error: any) => {
+      const errorData = error.response?.data;
+      let errorMessage = 'Failed to create sale';
+      
+      if (errorData) {
+        // Extract detailed error messages
+        if (typeof errorData === 'object') {
+          const errors = Object.entries(errorData).map(([key, value]) => {
+            if (Array.isArray(value)) {
+              return `${key}: ${value.join(', ')}`;
+            }
+            return `${key}: ${value}`;
+          }).join('; ');
+          errorMessage = errors || errorMessage;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        }
+      }
+      
+      console.error('Sale creation failed:', errorMessage);
       setSnackbar({ 
         open: true, 
-        message: error.response?.data?.detail || 'Failed to create sale', 
+        message: errorMessage, 
         severity: 'error' 
       });
     },
@@ -114,9 +146,12 @@ export default function Sales() {
       });
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sales'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to show updated data immediately
+      await queryClient.invalidateQueries({ queryKey: ['sales'] });
+      await queryClient.invalidateQueries({ queryKey: ['customers'] });
+      await queryClient.invalidateQueries({ queryKey: ['customers-active'] });
+      await queryClient.refetchQueries({ queryKey: ['sales'] });
       setOpen(false);
       setEditMode(false);
       setSelectedSale(null);
@@ -136,9 +171,12 @@ export default function Sales() {
     mutationFn: async (id: number) => {
       await api.delete(`/api/sales/${id}/`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sales'] });
-      queryClient.invalidateQueries({ queryKey: ['customers'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to show changes immediately
+      await queryClient.invalidateQueries({ queryKey: ['sales'] });
+      await queryClient.invalidateQueries({ queryKey: ['customers'] });
+      await queryClient.invalidateQueries({ queryKey: ['customers-active'] });
+      await queryClient.refetchQueries({ queryKey: ['sales'] });
       setSnackbar({ open: true, message: 'Sale deleted successfully!', severity: 'success' });
     },
     onError: (error: any) => {

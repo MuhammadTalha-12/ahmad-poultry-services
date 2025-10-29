@@ -63,7 +63,9 @@ export default function Customers() {
       }
     },
     onSuccess: () => {
+      // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-active'] });
       setOpen(false);
       setFormData({ name: '', phone: '', address: '', opening_balance: '0' });
       setSnackbar({ open: true, message: 'Customer created successfully!', severity: 'success' });
@@ -91,7 +93,9 @@ export default function Customers() {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-active'] });
       setOpen(false);
       setEditMode(false);
       setSelectedCustomer(null);
@@ -112,7 +116,9 @@ export default function Customers() {
       await api.delete(`/api/customers/${id}/`);
     },
     onSuccess: () => {
+      // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
+      queryClient.invalidateQueries({ queryKey: ['customers-active'] });
       setSnackbar({ open: true, message: 'Customer deleted successfully!', severity: 'success' });
     },
     onError: (error: any) => {

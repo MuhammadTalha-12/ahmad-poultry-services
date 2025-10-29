@@ -65,8 +65,10 @@ export default function Purchases() {
       });
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to show new data immediately
+      await queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      await queryClient.refetchQueries({ queryKey: ['purchases'] });
       setOpen(false);
       resetForm();
       setSnackbar({ open: true, message: 'Purchase created successfully!', severity: 'success' });
@@ -89,8 +91,10 @@ export default function Purchases() {
       });
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['purchases'] });
+    onSuccess: async () => {
+      // Invalidate and refetch to show updated data immediately
+      await queryClient.invalidateQueries({ queryKey: ['purchases'] });
+      await queryClient.refetchQueries({ queryKey: ['purchases'] });
       setOpen(false);
       setEditMode(false);
       setSelectedPurchase(null);
