@@ -55,8 +55,17 @@ export default function Payments() {
   });
 
   const { data: customers } = useQuery<PaginatedResponse<Customer>>({ 
-    queryKey: ['customers'], 
-    queryFn: async () => (await api.get('/api/customers/?is_active=true')).data 
+    queryKey: ['customers-active'], 
+    queryFn: async () => {
+      try {
+        const response = await api.get('/api/customers/?is_active=true&page_size=1000');
+        console.log('Customers for payments:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching customers for payments:', error);
+        throw error;
+      }
+    }
   });
 
   const createMutation = useMutation({
@@ -289,8 +298,15 @@ export default function Payments() {
                 value={formData.customer} 
                 onChange={(e) => setFormData({ ...formData, customer: e.target.value })} 
                 required
+                helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available`}
               >
-                {customers?.results.map((c) => <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>)}
+                {customers?.results && customers.results.length > 0 ? (
+                  customers.results.map((c) => (
+                    <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No customers found</MenuItem>
+                )}
               </TextField>
               <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2 }}>
                 <TextField 

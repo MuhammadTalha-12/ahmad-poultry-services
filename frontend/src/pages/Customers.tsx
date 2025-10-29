@@ -34,21 +34,33 @@ export default function Customers() {
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery<PaginatedResponse<Customer>>({
+  const { data, isLoading, error: queryError } = useQuery<PaginatedResponse<Customer>>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const response = await api.get('/api/customers/');
-      return response.data;
+      try {
+        const response = await api.get('/api/customers/');
+        console.log('Customers API response:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Error fetching customers:', error);
+        throw error;
+      }
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async (newCustomer: typeof formData) => {
-      const response = await api.post('/api/customers/', {
-        ...newCustomer,
-        opening_balance: parseFloat(newCustomer.opening_balance) || 0
-      });
-      return response.data;
+      try {
+        const response = await api.post('/api/customers/', {
+          ...newCustomer,
+          opening_balance: parseFloat(newCustomer.opening_balance) || 0
+        });
+        console.log('Customer created:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Error creating customer:', error.response?.data);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -57,9 +69,14 @@ export default function Customers() {
       setSnackbar({ open: true, message: 'Customer created successfully!', severity: 'success' });
     },
     onError: (error: any) => {
+      const errorMessage = error.response?.data?.name?.[0] 
+        || error.response?.data?.detail 
+        || error.message 
+        || 'Failed to create customer';
+      console.error('Customer creation error:', errorMessage);
       setSnackbar({ 
         open: true, 
-        message: error.response?.data?.name?.[0] || error.response?.data?.detail || 'Failed to create customer', 
+        message: errorMessage, 
         severity: 'error' 
       });
     },
@@ -216,6 +233,12 @@ export default function Customers() {
         </Button>
       </Box>
 
+      {queryError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Error loading customers: {(queryError as any).message}
+        </Alert>
+      )}
+      
       <Paper sx={{ height: 600, width: '100%' }}>
         <DataGrid
           rows={data?.results || []}
@@ -224,6 +247,11 @@ export default function Customers() {
           pageSizeOptions={[25, 50, 100]}
           initialState={{
             pagination: { paginationModel: { pageSize: 25 } },
+          }}
+          sx={{
+            '& .MuiDataGrid-row': {
+              cursor: 'pointer',
+            },
           }}
         />
       </Paper>

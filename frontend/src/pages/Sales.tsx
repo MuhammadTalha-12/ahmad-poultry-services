@@ -60,10 +60,17 @@ export default function Sales() {
   });
 
   const { data: customers } = useQuery<PaginatedResponse<Customer>>({
-    queryKey: ['customers'],
+    queryKey: ['customers-active'],
     queryFn: async () => {
-      const response = await api.get('/api/customers/?is_active=true');
-      return response.data;
+      try {
+        // Fetch all active customers (increase page_size to get all)
+        const response = await api.get('/api/customers/?is_active=true&page_size=1000');
+        console.log('Customers for sales:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching customers for sales:', error);
+        throw error;
+      }
     },
   });
 
@@ -345,12 +352,17 @@ export default function Sales() {
                   value={formData.customer}
                   onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
                   required
+                  helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available`}
                 >
-                  {customers?.results.map((customer) => (
-                    <MenuItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </MenuItem>
-                  ))}
+                  {customers?.results && customers.results.length > 0 ? (
+                    customers.results.map((customer) => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No customers found</MenuItem>
+                  )}
                 </TextField>
                 <TextField
                   fullWidth
