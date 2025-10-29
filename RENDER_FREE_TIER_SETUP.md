@@ -88,7 +88,7 @@ DEBUG
 False
 
 ALLOWED_HOSTS
-ahmad-poultry-backend.onrender.com
+ahmad-poultery-backend.onrender.com
 
 DATABASE_URL
 postgresql://your-neon-string-here
@@ -264,10 +264,10 @@ Update these 2 variables:
 
 ```env
 ALLOWED_HOSTS
-ahmad-poultry-backend.onrender.com,ahmad-poultry-services.netlify.app
+ahmad-poultery-backend.onrender.com,ahmad-poultery-services.netlify.app
 
 CORS_ALLOWED_ORIGINS
-https://ahmad-poultry-services.netlify.app
+https://ahmad-poultery-services.netlify.app
 ```
 
 ⚠️ Use `https://` not `http://`
