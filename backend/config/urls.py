@@ -13,7 +13,7 @@ from sales.views import (
 from reports.views import (
     DailyReportView, PeriodReportView, ExpenseReportView, CustomerReportView
 )
-from .views import api_root
+from .views import api_root, health_check
 
 # Create router for viewsets
 router = DefaultRouter()
@@ -27,6 +27,9 @@ router.register(r'expenses', ExpenseViewSet, basename='expense')
 urlpatterns = [
     # Root API endpoint
     path('', api_root, name='api-root'),
+    
+    # Health check for monitoring services
+    path('health/', health_check, name='health-check'),
     
     path('admin/', admin.site.urls),
     

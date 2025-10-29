@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
+from django.db import connection
 
 
 @require_http_methods(["GET"])
@@ -32,4 +34,31 @@ def api_root(request):
             }
         }
     })
+
+
+@require_http_methods(["GET"])
+def health_check(request):
+    """
+    Health check endpoint for monitoring services (UptimeRobot, etc.)
+    Tests database connection and returns server status
+    """
+    try:
+        # Test database connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        
+        return JsonResponse({
+            'status': 'healthy',
+            'timestamp': timezone.now().isoformat(),
+            'database': 'connected',
+            'server': 'online'
+        }, status=200)
+    
+    except Exception as e:
+        return JsonResponse({
+            'status': 'unhealthy',
+            'timestamp': timezone.now().isoformat(),
+            'database': 'disconnected',
+            'error': str(e)
+        }, status=503)
 
