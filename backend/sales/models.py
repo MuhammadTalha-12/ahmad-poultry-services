@@ -31,12 +31,16 @@ class Customer(models.Model):
     @property
     def running_balance(self):
         """Calculate customer's running balance"""
+        from django.db.models import F, Sum
+        
+        # Calculate total sales: sum of (kg * sale_rate_per_kg) for each sale
         total_sales = self.sales.aggregate(
-            total=models.Sum('total_amount')
+            total=Sum(F('kg') * F('sale_rate_per_kg'))
         )['total'] or Decimal('0.000')
         
+        # Calculate total payments
         total_payments = self.payments.aggregate(
-            total=models.Sum('amount')
+            total=Sum('amount')
         )['total'] or Decimal('0.000')
         
         return self.opening_balance + total_sales - total_payments
