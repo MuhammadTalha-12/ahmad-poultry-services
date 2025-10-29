@@ -7,7 +7,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from sales.views import (
     CustomerViewSet, DailyRateViewSet, PurchaseViewSet,
-    SaleViewSet, PaymentViewSet, ExpenseViewSet
+    SaleViewSet, PaymentViewSet, ExpenseViewSet,
+    backup_database, backup_status
 )
 from reports.views import (
     DailyReportView, PeriodReportView, ExpenseReportView, CustomerReportView
@@ -41,6 +42,10 @@ urlpatterns = [
     path('api/reports/period/', PeriodReportView.as_view(), name='period-report'),
     path('api/reports/expenses/', ExpenseReportView.as_view(), name='expense-report'),
     path('api/customers/<int:customer_id>/report/', CustomerReportView.as_view(), name='customer-report'),
+    
+    # Backup
+    path('api/backup/', backup_database, name='backup-database'),
+    path('api/backup/status/', backup_status, name='backup-status'),
     
     # API Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

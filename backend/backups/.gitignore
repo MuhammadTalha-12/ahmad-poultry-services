@@ -1,0 +1,11 @@
+# Ignore all backup files
+*.xlsx
+*.json
+*.csv
+
+# But track this .gitignore file
+!.gitignore
+
+# Keep a README
+!README.md
+
