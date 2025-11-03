@@ -278,6 +278,7 @@ export default function DailyRates() {
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { cursor: 'pointer' } }}
             />
             <TextField
               label="Cost Rate (PKR/kg)"

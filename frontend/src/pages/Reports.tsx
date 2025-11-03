@@ -251,7 +251,8 @@ export default function Reports() {
             type="date" 
             value={startDate} 
             onChange={(e) => setStartDate(e.target.value)} 
-            InputLabelProps={{ shrink: true }} 
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ style: { cursor: 'pointer' } }}
           />
           <TextField 
             fullWidth 
@@ -259,7 +260,8 @@ export default function Reports() {
             type="date" 
             value={endDate} 
             onChange={(e) => setEndDate(e.target.value)} 
-            InputLabelProps={{ shrink: true }} 
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ style: { cursor: 'pointer' } }}
           />
           <Button variant="contained" fullWidth onClick={() => refetch()}>
             Generate Report

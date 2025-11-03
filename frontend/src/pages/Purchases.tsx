@@ -248,6 +248,7 @@ export default function Purchases() {
               value={dateFilter.start_date}
               onChange={(e) => setDateFilter({ ...dateFilter, start_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { cursor: 'pointer' } }}
               size="small"
             />
             <TextField
@@ -256,6 +257,7 @@ export default function Purchases() {
               value={dateFilter.end_date}
               onChange={(e) => setDateFilter({ ...dateFilter, end_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { cursor: 'pointer' } }}
               size="small"
             />
             <Button variant="outlined" onClick={handleClearFilter}>
@@ -287,7 +289,8 @@ export default function Purchases() {
                 value={formData.date} 
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })} 
                 required 
-                InputLabelProps={{ shrink: true }} 
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ style: { cursor: 'pointer' } }}
               />
               <TextField 
                 fullWidth 
