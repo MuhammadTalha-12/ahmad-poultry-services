@@ -7,14 +7,14 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.utils import timezone
 from django.core.management import call_command
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
 from .serializers import (
     CustomerSerializer, DailyRateSerializer, PurchaseSerializer,
-    SaleSerializer, PaymentSerializer, ExpenseSerializer
+    SaleSerializer, PaymentSerializer, ExpenseSerializer, CustomerDeductionSerializer
 )
 from .filters import (
     CustomerFilter, PurchaseFilter, SaleFilter,
-    PaymentFilter, ExpenseFilter, DailyRateFilter
+    PaymentFilter, ExpenseFilter, DailyRateFilter, CustomerDeductionFilter
 )
 import os
 
@@ -105,6 +105,19 @@ class PaymentViewSet(viewsets.ModelViewSet):
     search_fields = ['customer__name', 'note']
     ordering_fields = ['date', 'amount', 'created_at']
     ordering = ['-date', '-created_at']
+    
+    def perform_create(self, serializer):
+        """Create payment and auto-allocate to customer's outstanding sales"""
+        payment = serializer.save()
+        # Auto-allocate this payment to customer's sales with outstanding borrow amounts
+        payment.allocate_to_sales()
+    
+    def perform_update(self, serializer):
+        """Update payment and re-allocate if needed"""
+        payment = serializer.save()
+        # If payment details changed and not yet allocated, allocate it
+        if not payment.auto_allocated:
+            payment.allocate_to_sales()
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):
@@ -116,6 +129,18 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     filterset_class = ExpenseFilter
     search_fields = ['note']
     ordering_fields = ['date', 'amount', 'category', 'created_at']
+    ordering = ['-date', '-created_at']
+
+
+class CustomerDeductionViewSet(viewsets.ModelViewSet):
+    """ViewSet for CustomerDeduction model"""
+    queryset = CustomerDeduction.objects.select_related('customer').all()
+    serializer_class = CustomerDeductionSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = CustomerDeductionFilter
+    search_fields = ['customer__name', 'note']
+    ordering_fields = ['date', 'amount', 'created_at']
     ordering = ['-date', '-created_at']
 
 

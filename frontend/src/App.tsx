@@ -12,6 +12,7 @@ import DailyRates from './pages/DailyRates';
 import Sales from './pages/Sales';
 import Purchases from './pages/Purchases';
 import Payments from './pages/Payments';
+import CustomerDeductions from './pages/CustomerDeductions';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
 import Layout from './components/Layout';
@@ -64,6 +65,7 @@ function App() {
               <Route path="sales" element={<Sales />} />
               <Route path="purchases" element={<Purchases />} />
               <Route path="payments" element={<Payments />} />
+              <Route path="customer-deductions" element={<CustomerDeductions />} />
               <Route path="expenses" element={<Expenses />} />
               <Route path="reports" element={<Reports />} />
             </Route>

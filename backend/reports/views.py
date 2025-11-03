@@ -41,9 +41,16 @@ class DailyReportView(APIView):
         sales = Sale.objects.filter(date=report_date)
         sales_kg = sales.aggregate(total=Sum('kg'))['total'] or Decimal('0.000')
         sales_revenue = sum([s.total_amount for s in sales]) or Decimal('0.000')
-        cash_received = sales.aggregate(total=Sum('amount_received'))['total'] or Decimal('0.000')
-        borrow = sales_revenue - cash_received
+        cash_from_sales = sales.aggregate(total=Sum('amount_received'))['total'] or Decimal('0.000')
+        borrow = sales_revenue - cash_from_sales
         profit = sum([s.profit for s in sales]) or Decimal('0.000')
+        
+        # Payments (cash received separately from sales)
+        payments = Payment.objects.filter(date=report_date)
+        cash_from_payments = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0.000')
+        
+        # Total cash received = cash from sales + payments received
+        total_cash_received = cash_from_sales + cash_from_payments
         
         # Expenses
         expenses = Expense.objects.filter(date=report_date)
@@ -62,7 +69,9 @@ class DailyReportView(APIView):
             'sales_kg': sales_kg,
             'sales_revenue': sales_revenue,
             'profit': profit,
-            'cash_received': cash_received,
+            'cash_received': total_cash_received,
+            'cash_from_sales': cash_from_sales,
+            'cash_from_payments': cash_from_payments,
             'borrow': borrow,
             'expenses_total': expenses_total,
             'closing_stock': closing_stock,
@@ -106,7 +115,7 @@ class PeriodReportView(APIView):
             )['total'] or Decimal('0.000')
             expenses_by_category[category] = cat_total
         
-        # Customer breakdown
+        # Customer breakdown with running balance
         customer_sales = {}
         for sale in sales:
             cust_name = sale.customer.name
@@ -115,6 +124,7 @@ class PeriodReportView(APIView):
                     'kg': Decimal('0.000'),
                     'revenue': Decimal('0.000'),
                     'profit': Decimal('0.000'),
+                    'running_balance': sale.customer.running_balance,  # Grand closing balance
                 }
             customer_sales[cust_name]['kg'] += sale.kg
             customer_sales[cust_name]['revenue'] += sale.total_amount

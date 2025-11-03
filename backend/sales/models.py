@@ -43,7 +43,12 @@ class Customer(models.Model):
             total=Sum('amount')
         )['total'] or Decimal('0.000')
         
-        return self.opening_balance + total_sales - total_payments
+        # Calculate total deductions (reduces what customer owes)
+        total_deductions = self.deductions.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.000')
+        
+        return self.opening_balance + total_sales - total_payments - total_deductions
 
 
 class DailyRate(models.Model):
@@ -189,6 +194,10 @@ class Payment(models.Model):
     )
     method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash')
     note = models.TextField(blank=True)
+    auto_allocated = models.BooleanField(
+        default=False,
+        help_text="Whether this payment was auto-allocated to sales"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -202,6 +211,41 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.customer.name} - {self.amount}"
+    
+    def allocate_to_sales(self):
+        """
+        Automatically allocate this payment to customer's sales with outstanding borrow amounts.
+        Prioritizes sales from the same date, then oldest first.
+        """
+        if self.auto_allocated:
+            return  # Already allocated
+        
+        remaining_amount = self.amount
+        
+        # Get customer's sales with outstanding borrow amounts
+        # Prioritize: same date first, then oldest first
+        sales_same_date = self.customer.sales.filter(date=self.date).order_by('created_at')
+        sales_other_dates = self.customer.sales.exclude(date=self.date).order_by('date', 'created_at')
+        
+        # Combine querysets: same date first, then others
+        from itertools import chain
+        all_sales = list(chain(sales_same_date, sales_other_dates))
+        
+        for sale in all_sales:
+            if remaining_amount <= 0:
+                break
+            
+            current_borrow = sale.borrow_amount
+            if current_borrow > 0:
+                # Allocate as much as possible to this sale
+                allocation = min(remaining_amount, current_borrow)
+                sale.amount_received = sale.amount_received + allocation
+                sale.save(update_fields=['amount_received', 'updated_at'])
+                remaining_amount -= allocation
+        
+        # Mark payment as allocated
+        self.auto_allocated = True
+        self.save(update_fields=['auto_allocated', 'updated_at'])
 
 
 class Expense(models.Model):
@@ -235,3 +279,45 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.get_category_display()} - {self.amount}"
+
+
+class CustomerDeduction(models.Model):
+    """Track deductions from customer balance (e.g., returns, discounts, adjustments)"""
+    DEDUCTION_TYPES = [
+        ('return', 'Product Return'),
+        ('discount', 'Discount/Adjustment'),
+        ('damage', 'Damaged Goods'),
+        ('other', 'Other'),
+    ]
+
+    date = models.DateField(db_index=True)
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.PROTECT,
+        related_name='deductions'
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal('0.001'))],
+        help_text="Amount to deduct from customer's balance"
+    )
+    deduction_type = models.CharField(
+        max_length=20,
+        choices=DEDUCTION_TYPES,
+        default='other'
+    )
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['customer', 'date']),
+            models.Index(fields=['-date', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.date} - {self.customer.name} - Deduction: {self.amount}"

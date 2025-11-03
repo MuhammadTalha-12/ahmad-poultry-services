@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
 from decimal import Decimal
 
 
@@ -101,9 +101,9 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = [
             'id', 'date', 'customer', 'customer_name', 'amount',
-            'method', 'note', 'created_at', 'updated_at'
+            'method', 'note', 'auto_allocated', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        read_only_fields = ['created_at', 'updated_at', 'auto_allocated']
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
@@ -114,6 +114,19 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'date', 'category', 'category_display', 'amount',
             'note', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class CustomerDeductionSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.name', read_only=True)
+    deduction_type_display = serializers.CharField(source='get_deduction_type_display', read_only=True)
+    
+    class Meta:
+        model = CustomerDeduction
+        fields = [
+            'id', 'date', 'customer', 'customer_name', 'amount',
+            'deduction_type', 'deduction_type_display', 'note', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 

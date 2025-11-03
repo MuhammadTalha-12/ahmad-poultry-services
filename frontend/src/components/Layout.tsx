@@ -20,6 +20,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
@@ -35,6 +36,7 @@ const menuItems = [
   { text: 'Sales', icon: <ShoppingCartIcon />, path: '/sales' },
   { text: 'Purchases', icon: <LocalShippingIcon />, path: '/purchases' },
   { text: 'Payments', icon: <PaymentIcon />, path: '/payments' },
+  { text: 'Deductions', icon: <RemoveCircleOutlineIcon />, path: '/customer-deductions' },
   { text: 'Expenses', icon: <ReceiptIcon />, path: '/expenses' },
   { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },
 ];

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
 
 
 @admin.register(Customer)
@@ -41,11 +41,12 @@ class SaleAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ['date', 'customer', 'amount', 'method', 'created_at']
-    list_filter = ['date', 'method', 'customer']
+    list_display = ['date', 'customer', 'amount', 'method', 'auto_allocated', 'created_at']
+    list_filter = ['date', 'method', 'customer', 'auto_allocated']
     search_fields = ['customer__name', 'note']
     ordering = ['-date', '-created_at']
     autocomplete_fields = ['customer']
+    readonly_fields = ['auto_allocated']
 
 
 @admin.register(Expense)
@@ -54,3 +55,12 @@ class ExpenseAdmin(admin.ModelAdmin):
     list_filter = ['date', 'category']
     search_fields = ['note']
     ordering = ['-date', '-created_at']
+
+
+@admin.register(CustomerDeduction)
+class CustomerDeductionAdmin(admin.ModelAdmin):
+    list_display = ['date', 'customer', 'amount', 'deduction_type', 'created_at']
+    list_filter = ['date', 'deduction_type', 'customer']
+    search_fields = ['customer__name', 'note']
+    ordering = ['-date', '-created_at']
+    autocomplete_fields = ['customer']

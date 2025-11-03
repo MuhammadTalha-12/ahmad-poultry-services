@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
 
 
 class CustomerFilter(filters.FilterSet):
@@ -72,4 +72,18 @@ class ExpenseFilter(filters.FilterSet):
     class Meta:
         model = Expense
         fields = ['date', 'category']
+
+
+class CustomerDeductionFilter(filters.FilterSet):
+    """Filter for CustomerDeduction model"""
+    date = filters.DateFilter()
+    date_from = filters.DateFilter(field_name='date', lookup_expr='gte')
+    date_to = filters.DateFilter(field_name='date', lookup_expr='lte')
+    customer = filters.NumberFilter()
+    customer_name = filters.CharFilter(field_name='customer__name', lookup_expr='icontains')
+    deduction_type = filters.ChoiceFilter(choices=CustomerDeduction.DEDUCTION_TYPES)
+    
+    class Meta:
+        model = CustomerDeduction
+        fields = ['date', 'customer', 'deduction_type']
 

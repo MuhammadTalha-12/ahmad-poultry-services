@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from sales.views import (
     CustomerViewSet, DailyRateViewSet, PurchaseViewSet,
-    SaleViewSet, PaymentViewSet, ExpenseViewSet,
+    SaleViewSet, PaymentViewSet, ExpenseViewSet, CustomerDeductionViewSet,
     backup_database, backup_status
 )
 from reports.views import (
@@ -23,6 +23,7 @@ router.register(r'purchases', PurchaseViewSet, basename='purchase')
 router.register(r'sales', SaleViewSet, basename='sale')
 router.register(r'payments', PaymentViewSet, basename='payment')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
+router.register(r'customer-deductions', CustomerDeductionViewSet, basename='customerdeduction')
 
 urlpatterns = [
     # Root API endpoint

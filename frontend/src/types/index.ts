@@ -60,6 +60,20 @@ export interface Payment {
   amount: string;
   method: 'cash' | 'bank' | 'other';
   note: string;
+  auto_allocated: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomerDeduction {
+  id: number;
+  date: string;
+  customer: number;
+  customer_name: string;
+  amount: string;
+  deduction_type: 'return' | 'discount' | 'damage' | 'other';
+  deduction_type_display: string;
+  note: string;
   created_at: string;
   updated_at: string;
 }
@@ -88,6 +102,8 @@ export interface DailyReport {
   sales_revenue: string;
   profit: string;
   cash_received: string;
+  cash_from_sales: string;
+  cash_from_payments: string;
   borrow: string;
   expenses_total: string;
   closing_stock: string;
@@ -101,6 +117,7 @@ export interface PeriodReport extends DailyReport {
     kg: string;
     revenue: string;
     profit: string;
+    running_balance: string;
   }>;
 }
 
