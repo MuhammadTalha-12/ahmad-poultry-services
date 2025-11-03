@@ -29,6 +29,7 @@ export default function Purchases() {
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     supplier: '',
+    vehicle_number: '',
     kg: '',
     cost_rate_per_kg: '',
     note: '',
@@ -130,6 +131,7 @@ export default function Purchases() {
   const columns: GridColDef[] = [
     { field: 'date', headerName: 'Date', width: 110 },
     { field: 'supplier', headerName: 'Supplier', flex: 1 },
+    { field: 'vehicle_number', headerName: 'Vehicle', width: 100 },
     { field: 'kg', headerName: 'KG', width: 100 },
     { field: 'cost_rate_per_kg', headerName: 'Rate/KG', width: 100 },
     { 
@@ -170,6 +172,7 @@ export default function Purchases() {
     setFormData({
       date: purchase.date,
       supplier: purchase.supplier,
+      vehicle_number: purchase.vehicle_number || '',
       kg: purchase.kg,
       cost_rate_per_kg: purchase.cost_rate_per_kg,
       note: purchase.note,
@@ -196,6 +199,7 @@ export default function Purchases() {
     setFormData({ 
       date: new Date().toISOString().split('T')[0], 
       supplier: '', 
+      vehicle_number: '',
       kg: '', 
       cost_rate_per_kg: '', 
       note: '' 
@@ -290,6 +294,14 @@ export default function Purchases() {
                 label="Supplier" 
                 value={formData.supplier} 
                 onChange={(e) => setFormData({ ...formData, supplier: e.target.value })} 
+              />
+              <TextField 
+                fullWidth 
+                label="Vehicle Number" 
+                value={formData.vehicle_number} 
+                onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })} 
+                placeholder="e.g., Van-01, TRK-123"
+                helperText="Vehicle/Van number used for this purchase"
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <TextField 

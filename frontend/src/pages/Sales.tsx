@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
@@ -21,7 +21,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import api from '../services/api';
-import type { Sale, Customer, PaginatedResponse } from '../types';
+import type { Sale, Customer, PaginatedResponse, DailyRate } from '../types';
 
 export default function Sales() {
   const [open, setOpen] = useState(false);
@@ -73,6 +73,38 @@ export default function Sales() {
       }
     },
   });
+
+  // Fetch daily rates to auto-fill cost price
+  const { data: dailyRates } = useQuery<PaginatedResponse<DailyRate>>({
+    queryKey: ['daily-rates'],
+    queryFn: async () => {
+      const response = await api.get('/api/daily-rates/?page_size=100');
+      return response.data;
+    },
+  });
+
+  // Auto-fill cost price when date changes
+  useEffect(() => {
+    if (formData.date && dailyRates?.results && !editMode) {
+      // Find rate for selected date
+      const rateForDate = dailyRates.results.find(rate => rate.date === formData.date);
+      if (rateForDate) {
+        setFormData(prev => ({
+          ...prev,
+          cost_rate_snapshot: rateForDate.default_cost_rate,
+        }));
+      } else {
+        // Use most recent rate if exact date not found
+        const latestRate = dailyRates.results[0];
+        if (latestRate && !formData.cost_rate_snapshot) {
+          setFormData(prev => ({
+            ...prev,
+            cost_rate_snapshot: latestRate.default_cost_rate,
+          }));
+        }
+      }
+    }
+  }, [formData.date, dailyRates, editMode]);
 
   const createMutation = useMutation({
     mutationFn: async (newSale: any) => {
@@ -198,6 +230,21 @@ export default function Sales() {
       headerName: 'Total', 
       width: 120,
       valueFormatter: (value) => `${parseFloat(value).toFixed(2)}`
+    },
+    { 
+      field: 'customer_closing_balance', 
+      headerName: 'Closing Balance', 
+      width: 150,
+      valueFormatter: (value) => {
+        const bal = parseFloat(value || '0');
+        return `${bal.toFixed(2)}`;
+      },
+      cellClassName: (params) => {
+        const balance = parseFloat(params.value || '0');
+        if (balance > 0) return 'text-red-600'; // Customer owes you
+        if (balance < 0) return 'text-green-600'; // You owe customer
+        return '';
+      }
     },
     { 
       field: 'amount_received', 
