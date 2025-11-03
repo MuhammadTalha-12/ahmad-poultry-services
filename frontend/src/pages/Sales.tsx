@@ -14,12 +14,14 @@ import {
   IconButton,
   Alert,
   Snackbar,
+  InputAdornment,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import api from '../services/api';
 import type { Sale, Customer, PaginatedResponse, DailyRate } from '../types';
 
@@ -387,6 +389,13 @@ export default function Sales() {
               onChange={(e) => setDateFilter({ ...dateFilter, start_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
               inputProps={{ style: { cursor: 'pointer' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarTodayIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
               size="small"
             />
             <TextField
@@ -396,6 +405,13 @@ export default function Sales() {
               onChange={(e) => setDateFilter({ ...dateFilter, end_date: e.target.value })}
               InputLabelProps={{ shrink: true }}
               inputProps={{ style: { cursor: 'pointer' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarTodayIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
               size="small"
             />
             <Button variant="outlined" onClick={handleClearFilter}>
@@ -432,6 +448,13 @@ export default function Sales() {
                   required
                   InputLabelProps={{ shrink: true }}
                   inputProps={{ style: { cursor: 'pointer' } }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <CalendarTodayIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <TextField
                   fullWidth

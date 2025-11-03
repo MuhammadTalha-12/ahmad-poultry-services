@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Box, Button, TextField, Typography, Paper, Card, CardContent, CircularProgress } from '@mui/material';
+import { Box, Button, TextField, Typography, Paper, Card, CardContent, CircularProgress, InputAdornment } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import api from '../services/api';
 import type { PeriodReport } from '../types';
 
@@ -253,6 +254,13 @@ export default function Reports() {
             onChange={(e) => setStartDate(e.target.value)} 
             InputLabelProps={{ shrink: true }}
             inputProps={{ style: { cursor: 'pointer' } }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarTodayIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
           />
           <TextField 
             fullWidth 
@@ -262,6 +270,13 @@ export default function Reports() {
             onChange={(e) => setEndDate(e.target.value)} 
             InputLabelProps={{ shrink: true }}
             inputProps={{ style: { cursor: 'pointer' } }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <CalendarTodayIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
           />
           <Button variant="contained" fullWidth onClick={() => refetch()}>
             Generate Report

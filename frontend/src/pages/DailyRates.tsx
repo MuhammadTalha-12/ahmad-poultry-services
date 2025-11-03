@@ -22,8 +22,9 @@ import {
   Chip,
   Card,
   CardContent,
+  InputAdornment,
 } from '@mui/material';
-import { Add, Edit, Delete, TrendingUp, TrendingDown } from '@mui/icons-material';
+import { Add, Edit, Delete, TrendingUp, TrendingDown, CalendarToday } from '@mui/icons-material';
 import api from '../services/api';
 import type { DailyRate } from '../types';
 
@@ -279,6 +280,13 @@ export default function DailyRates() {
               fullWidth
               InputLabelProps={{ shrink: true }}
               inputProps={{ style: { cursor: 'pointer' } }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarToday fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
             />
             <TextField
               label="Cost Rate (PKR/kg)"
