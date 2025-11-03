@@ -22,6 +22,7 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useAuthStore } from '../stores/authStore';
 
@@ -30,6 +31,7 @@ const drawerWidth = 240;
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
+  { text: 'Daily Rates', icon: <AttachMoneyIcon />, path: '/daily-rates' },
   { text: 'Sales', icon: <ShoppingCartIcon />, path: '/sales' },
   { text: 'Purchases', icon: <LocalShippingIcon />, path: '/purchases' },
   { text: 'Payments', icon: <PaymentIcon />, path: '/payments' },

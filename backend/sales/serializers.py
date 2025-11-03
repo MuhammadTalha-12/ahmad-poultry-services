@@ -39,7 +39,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Purchase
         fields = [
-            'id', 'date', 'supplier', 'kg', 'cost_rate_per_kg',
+            'id', 'date', 'supplier', 'vehicle_number', 'kg', 'cost_rate_per_kg',
             'total_cost', 'note', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -47,6 +47,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
 
 class SaleSerializer(serializers.ModelSerializer):
     customer_name = serializers.CharField(source='customer.name', read_only=True)
+    customer_closing_balance = serializers.SerializerMethodField()
     total_amount = serializers.DecimalField(
         max_digits=12,
         decimal_places=3,
@@ -68,10 +69,14 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'date', 'customer', 'customer_name', 'kg',
             'sale_rate_per_kg', 'cost_rate_snapshot', 'total_amount',
-            'amount_received', 'borrow_amount', 'profit', 'note',
-            'created_at', 'updated_at'
+            'amount_received', 'borrow_amount', 'profit', 'customer_closing_balance',
+            'note', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+    
+    def get_customer_closing_balance(self, obj):
+        """Get customer's current closing balance"""
+        return obj.customer.running_balance
 
     def validate(self, data):
         """Validate that amount_received doesn't exceed total_amount"""

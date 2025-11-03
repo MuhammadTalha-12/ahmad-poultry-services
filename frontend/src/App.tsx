@@ -8,6 +8,7 @@ import { useAuthStore } from './stores/authStore';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
+import DailyRates from './pages/DailyRates';
 import Sales from './pages/Sales';
 import Purchases from './pages/Purchases';
 import Payments from './pages/Payments';
@@ -59,6 +60,7 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="daily-rates" element={<DailyRates />} />
               <Route path="sales" element={<Sales />} />
               <Route path="purchases" element={<Purchases />} />
               <Route path="payments" element={<Payments />} />

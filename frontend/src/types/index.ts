@@ -25,6 +25,7 @@ export interface Purchase {
   id: number;
   date: string;
   supplier: string;
+  vehicle_number: string;
   kg: string;
   cost_rate_per_kg: string;
   total_cost: string;
@@ -45,6 +46,7 @@ export interface Sale {
   amount_received: string;
   borrow_amount: string;
   profit: string;
+  customer_closing_balance: string;
   note: string;
   created_at: string;
   updated_at: string;
@@ -77,6 +79,11 @@ export interface DailyReport {
   date: string;
   purchases_kg: string;
   purchases_cost: string;
+  purchases_by_vehicle?: Record<string, {
+    kg: string;
+    cost: string;
+    count: number;
+  }>;
   sales_kg: string;
   sales_revenue: string;
   profit: string;

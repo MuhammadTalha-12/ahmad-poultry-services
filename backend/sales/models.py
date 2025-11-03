@@ -76,6 +76,7 @@ class Purchase(models.Model):
     """Track daily purchases from poultry farms"""
     date = models.DateField(db_index=True)
     supplier = models.CharField(max_length=255, blank=True)
+    vehicle_number = models.CharField(max_length=50, blank=True, help_text="Van/Vehicle number")
     kg = models.DecimalField(
         max_digits=10,
         decimal_places=3,

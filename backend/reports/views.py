@@ -23,6 +23,20 @@ class DailyReportView(APIView):
         purchases_kg = purchases.aggregate(total=Sum('kg'))['total'] or Decimal('0.000')
         purchases_cost = sum([p.total_cost for p in purchases]) or Decimal('0.000')
         
+        # Purchases by vehicle
+        purchases_by_vehicle = {}
+        for purchase in purchases:
+            vehicle = purchase.vehicle_number or 'Not Specified'
+            if vehicle not in purchases_by_vehicle:
+                purchases_by_vehicle[vehicle] = {
+                    'kg': Decimal('0.000'),
+                    'cost': Decimal('0.000'),
+                    'count': 0
+                }
+            purchases_by_vehicle[vehicle]['kg'] += purchase.kg
+            purchases_by_vehicle[vehicle]['cost'] += purchase.total_cost
+            purchases_by_vehicle[vehicle]['count'] += 1
+        
         # Sales
         sales = Sale.objects.filter(date=report_date)
         sales_kg = sales.aggregate(total=Sum('kg'))['total'] or Decimal('0.000')
@@ -44,6 +58,7 @@ class DailyReportView(APIView):
             'date': report_date,
             'purchases_kg': purchases_kg,
             'purchases_cost': purchases_cost,
+            'purchases_by_vehicle': purchases_by_vehicle,
             'sales_kg': sales_kg,
             'sales_revenue': sales_revenue,
             'profit': profit,

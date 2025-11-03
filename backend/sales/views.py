@@ -127,37 +127,59 @@ def backup_database(request):
     Only accessible to admin users
     Returns Excel file with all data
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
-        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
         output_dir = 'backups'
         
         # Create backups directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
         
+        logger.info("Starting backup process...")
+        
         # Call the management command to create backup
         call_command('backup_data', output_dir=output_dir)
         
-        # Get the file paths
-        excel_file = os.path.join(output_dir, f'ahmad_poultry_backup_{timestamp}.xlsx')
-        json_file = os.path.join(output_dir, f'ahmad_poultry_backup_{timestamp}.json')
+        logger.info("Backup command completed, looking for latest file...")
+        
+        # Get the most recently created Excel file
+        excel_files = [f for f in os.listdir(output_dir) if f.endswith('.xlsx') and f.startswith('ahmad_poultry_backup_')]
+        
+        if not excel_files:
+            logger.error("No backup files found after command execution")
+            return Response(
+                {'error': 'Backup file not created. Please check server logs.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Sort by modification time to get the latest
+        excel_files.sort(key=lambda x: os.path.getmtime(os.path.join(output_dir, x)), reverse=True)
+        latest_file = excel_files[0]
+        excel_file_path = os.path.join(output_dir, latest_file)
+        
+        logger.info(f"Found backup file: {latest_file}")
         
         # Return the Excel file as download
-        if os.path.exists(excel_file):
+        if os.path.exists(excel_file_path):
+            file_handle = open(excel_file_path, 'rb')
             response = FileResponse(
-                open(excel_file, 'rb'),
+                file_handle,
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
-            response['Content-Disposition'] = f'attachment; filename="ahmad_poultry_backup_{timestamp}.xlsx"'
+            response['Content-Disposition'] = f'attachment; filename="{latest_file}"'
             return response
         else:
+            logger.error(f"Backup file exists check failed: {excel_file_path}")
             return Response(
-                {'error': 'Backup file not found'},
+                {'error': 'Backup file not found after creation'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
     
     except Exception as e:
+        logger.error(f"Backup failed with exception: {str(e)}", exc_info=True)
         return Response(
-            {'error': f'Backup failed: {str(e)}'},
+            {'error': f'Backup failed: {str(e)}. Please contact administrator.'},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
