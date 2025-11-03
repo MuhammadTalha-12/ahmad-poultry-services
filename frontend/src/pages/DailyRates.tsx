@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tantml/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Paper,
@@ -22,7 +22,6 @@ import {
   Chip,
   Card,
   CardContent,
-  Grid,
 } from '@mui/material';
 import { Add, Edit, Delete, TrendingUp, TrendingDown } from '@mui/icons-material';
 import api from '../services/api';
@@ -171,44 +170,40 @@ export default function DailyRates() {
 
       {/* Current Rates Summary */}
       {latestRate && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6}>
-            <Card sx={{ bgcolor: '#f5f5f5' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingDown color="error" />
-                  <Typography variant="body2" color="text.secondary">
-                    Current Cost Rate
-                  </Typography>
-                </Box>
-                <Typography variant="h4" sx={{ mt: 1 }}>
-                  {Number(latestRate.default_cost_rate).toFixed(2)} PKR/kg
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mb: 3 }}>
+          <Card sx={{ bgcolor: '#f5f5f5' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TrendingDown color="error" />
+                <Typography variant="body2" color="text.secondary">
+                  Current Cost Rate
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Set on {new Date(latestRate.date).toLocaleDateString()}
+              </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {Number(latestRate.default_cost_rate).toFixed(2)} PKR/kg
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Set on {new Date(latestRate.date).toLocaleDateString()}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ bgcolor: '#f5f5f5' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <TrendingUp color="success" />
+                <Typography variant="body2" color="text.secondary">
+                  Current Sale Rate
                 </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Card sx={{ bgcolor: '#f5f5f5' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingUp color="success" />
-                  <Typography variant="body2" color="text.secondary">
-                    Current Sale Rate
-                  </Typography>
-                </Box>
-                <Typography variant="h4" sx={{ mt: 1 }}>
-                  {Number(latestRate.default_sale_rate).toFixed(2)} PKR/kg
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  Set on {new Date(latestRate.date).toLocaleDateString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              </Box>
+              <Typography variant="h4" sx={{ mt: 1 }}>
+                {Number(latestRate.default_sale_rate).toFixed(2)} PKR/kg
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Set on {new Date(latestRate.date).toLocaleDateString()}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
       )}
 
       {/* Rates Table - Mobile Responsive */}
@@ -224,7 +219,7 @@ export default function DailyRates() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {rates?.results?.map((rate) => (
+            {rates?.results?.map((rate: DailyRate) => (
               <TableRow key={rate.id}>
                 <TableCell>
                   <Box>
