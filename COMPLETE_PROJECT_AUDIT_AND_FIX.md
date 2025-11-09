@@ -27,7 +27,7 @@ CORS_ALLOWED_ORIGINS = config(
 ```python
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173,https://ahmad-poultry-services.netlify.app'
+    default='http://localhost:5173,http://127.0.0.1:5173,https://ahmad-poultery-services.netlify.app'
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -38,7 +38,7 @@ CORS_ALLOW_HEADERS = [
 ```
 
 **Why This Caused Network Errors:**
-- Frontend on Netlify: `https://ahmad-poultry-services.netlify.app`
+- Frontend on Netlify: `https://ahmad-poultery-services.netlify.app`
 - Backend blocked requests from this origin (CORS policy)
 - Browser showed: "Network Error" or "Failed to create"
 - This is a **security feature** - backend rejects unauthorized origins
