@@ -46,11 +46,18 @@ export default function Suppliers() {
 
   const createMutation = useMutation({
     mutationFn: async (newSupplier: typeof formData) => {
-      const response = await api.post('/api/suppliers/', {
-        ...newSupplier,
-        opening_balance: parseFloat(newSupplier.opening_balance) || 0,
-      });
-      return response.data;
+      try {
+        console.log('Creating supplier with data:', newSupplier);
+        const response = await api.post('/api/suppliers/', {
+          ...newSupplier,
+          opening_balance: parseFloat(newSupplier.opening_balance) || 0,
+        });
+        console.log('Supplier created successfully:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Supplier creation error:', error.response?.data);
+        throw error;
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
@@ -60,9 +67,39 @@ export default function Suppliers() {
       setSnackbar({ open: true, message: 'Supplier created successfully!', severity: 'success' });
     },
     onError: (error: any) => {
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      
+      let errorMessage = 'Failed to create supplier';
+      
+      // Handle different error formats
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for field-specific errors
+        if (errorData.name) {
+          errorMessage = Array.isArray(errorData.name) ? errorData.name[0] : errorData.name;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.phone) {
+          errorMessage = `Phone: ${Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone}`;
+        } else if (errorData.opening_balance) {
+          errorMessage = `Opening Balance: ${Array.isArray(errorData.opening_balance) ? errorData.opening_balance[0] : errorData.opening_balance}`;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else {
+          // Try to extract any error message from the object
+          const firstError = Object.values(errorData)[0];
+          if (firstError) {
+            errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
+          }
+        }
+      }
+      
       setSnackbar({
         open: true,
-        message: error.response?.data?.detail || error.response?.data?.name?.[0] || 'Failed to create supplier',
+        message: errorMessage,
         severity: 'error'
       });
     },
@@ -70,11 +107,18 @@ export default function Suppliers() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: typeof formData }) => {
-      const response = await api.put(`/api/suppliers/${id}/`, {
-        ...data,
-        opening_balance: parseFloat(data.opening_balance) || 0,
-      });
-      return response.data;
+      try {
+        console.log('Updating supplier', id, 'with data:', data);
+        const response = await api.put(`/api/suppliers/${id}/`, {
+          ...data,
+          opening_balance: parseFloat(data.opening_balance) || 0,
+        });
+        console.log('Supplier updated successfully:', response.data);
+        return response.data;
+      } catch (error: any) {
+        console.error('Supplier update error:', error.response?.data);
+        throw error;
+      }
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['suppliers'] });
@@ -86,9 +130,39 @@ export default function Suppliers() {
       setSnackbar({ open: true, message: 'Supplier updated successfully!', severity: 'success' });
     },
     onError: (error: any) => {
+      console.error('Full error object:', error);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      
+      let errorMessage = 'Failed to update supplier';
+      
+      // Handle different error formats
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Check for field-specific errors
+        if (errorData.name) {
+          errorMessage = Array.isArray(errorData.name) ? errorData.name[0] : errorData.name;
+        } else if (errorData.detail) {
+          errorMessage = errorData.detail;
+        } else if (errorData.phone) {
+          errorMessage = `Phone: ${Array.isArray(errorData.phone) ? errorData.phone[0] : errorData.phone}`;
+        } else if (errorData.opening_balance) {
+          errorMessage = `Opening Balance: ${Array.isArray(errorData.opening_balance) ? errorData.opening_balance[0] : errorData.opening_balance}`;
+        } else if (typeof errorData === 'string') {
+          errorMessage = errorData;
+        } else {
+          // Try to extract any error message from the object
+          const firstError = Object.values(errorData)[0];
+          if (firstError) {
+            errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
+          }
+        }
+      }
+      
       setSnackbar({
         open: true,
-        message: error.response?.data?.detail || error.response?.data?.name?.[0] || 'Failed to update supplier',
+        message: errorMessage,
         severity: 'error'
       });
     },
@@ -240,6 +314,7 @@ export default function Suppliers() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
+                helperText="Supplier name must be unique"
               />
               <TextField
                 fullWidth
