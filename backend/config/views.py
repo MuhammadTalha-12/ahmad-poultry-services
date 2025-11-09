@@ -20,11 +20,14 @@ def api_root(request):
             },
             'resources': {
                 'customers': '/api/customers/',
+                'suppliers': '/api/suppliers/',
                 'sales': '/api/sales/',
                 'purchases': '/api/purchases/',
                 'payments': '/api/payments/',
+                'supplier_payments': '/api/supplier-payments/',
                 'expenses': '/api/expenses/',
                 'daily_rates': '/api/daily-rates/',
+                'customer_deductions': '/api/customer-deductions/',
             },
             'reports': {
                 'daily': '/api/reports/daily/?date=YYYY-MM-DD',
