@@ -12,17 +12,28 @@ def migrate_suppliers_forward(apps, schema_editor):
     Supplier = apps.get_model('sales', 'Supplier')
     
     # Get all unique supplier names from purchases
-    supplier_names = Purchase.objects.values_list('supplier_old', flat=True).distinct()
+    supplier_names = Purchase.objects.exclude(
+        supplier_old__isnull=True
+    ).exclude(
+        supplier_old__exact=''
+    ).values_list('supplier_old', flat=True).distinct()
     
     # Create Supplier objects for each unique name
     for name in supplier_names:
-        if name:  # Only create if name is not empty
-            supplier, created = Supplier.objects.get_or_create(
-                name=name,
-                defaults={'phone': '', 'opening_balance': Decimal('0.000'), 'is_active': True}
-            )
-            # Update all purchases with this supplier name to link to the new Supplier object
-            Purchase.objects.filter(supplier_old=name).update(supplier_new=supplier)
+        if name and name.strip():  # Only create if name is not empty or whitespace
+            # Clean the name
+            clean_name = name.strip()
+            try:
+                supplier, created = Supplier.objects.get_or_create(
+                    name=clean_name,
+                    defaults={'phone': '', 'opening_balance': Decimal('0.000'), 'is_active': True}
+                )
+                # Update all purchases with this supplier name to link to the new Supplier object
+                Purchase.objects.filter(supplier_old=name).update(supplier_new=supplier)
+            except Exception as e:
+                # Log but don't fail - leave supplier_new as NULL for problematic entries
+                print(f"Warning: Could not create supplier '{clean_name}': {e}")
+                continue
 
 
 def migrate_suppliers_backward(apps, schema_editor):
