@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Startup script for Render - ensures migrations and static files are ready
+# Exit on any error
+set -e
 
 echo "==> Running database migrations..."
 python manage.py migrate --noinput
