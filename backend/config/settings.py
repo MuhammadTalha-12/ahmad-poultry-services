@@ -14,7 +14,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Security settings
 SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-)9i3d$)h807id6@9ywcr-&w0(t+%v-6zys15waiz6zt1q5t!cu')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.onrender.com').split(',')
+
+# CSRF settings for production
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173,https://*.onrender.com,https://*.netlify.app'
+).split(',')
 
 # Application definition
 INSTALLED_APPS = [
