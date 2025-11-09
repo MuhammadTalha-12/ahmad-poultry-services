@@ -35,8 +35,20 @@ echo "✅ Seed data loaded successfully"
 
 echo ""
 echo "📁 Step 5: Collecting static files..."
-python manage.py collectstatic --noinput
+# Create staticfiles directory if it doesn't exist
+mkdir -p staticfiles
+echo "Directory check: staticfiles directory created/verified"
+# Collect static files with verbose output
+python manage.py collectstatic --noinput --clear --verbosity 2
 echo "✅ Static files collected successfully"
+# Verify static files were collected
+if [ -d "staticfiles" ] && [ "$(ls -A staticfiles)" ]; then
+    echo "✓ Static files directory exists and contains files"
+    ls -la staticfiles/ | head -20
+else
+    echo "⚠️  Warning: Static files directory is empty or doesn't exist"
+    exit 1
+fi
 
 echo ""
 echo "========================================="
