@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction, Supplier, SupplierPayment
 
 
 @admin.register(Customer)
@@ -17,13 +17,22 @@ class DailyRateAdmin(admin.ModelAdmin):
     ordering = ['-date']
 
 
+@admin.register(Supplier)
+class SupplierAdmin(admin.ModelAdmin):
+    list_display = ['name', 'phone', 'opening_balance', 'is_active', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['name', 'phone']
+    ordering = ['name']
+
+
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display = ['date', 'supplier', 'kg', 'cost_rate_per_kg', 'total_cost', 'created_at']
+    list_display = ['date', 'supplier', 'vehicle_number', 'kg', 'cost_rate_per_kg', 'amount_paid', 'total_cost', 'borrow_amount', 'created_at']
     list_filter = ['date', 'supplier']
-    search_fields = ['supplier', 'note']
+    search_fields = ['supplier__name', 'vehicle_number', 'note']
     ordering = ['-date', '-created_at']
-    readonly_fields = ['total_cost']
+    readonly_fields = ['total_cost', 'borrow_amount']
+    autocomplete_fields = ['supplier']
 
 
 @admin.register(Sale)
@@ -64,3 +73,12 @@ class CustomerDeductionAdmin(admin.ModelAdmin):
     search_fields = ['customer__name', 'note']
     ordering = ['-date', '-created_at']
     autocomplete_fields = ['customer']
+
+
+@admin.register(SupplierPayment)
+class SupplierPaymentAdmin(admin.ModelAdmin):
+    list_display = ['date', 'supplier', 'amount', 'method', 'created_at']
+    list_filter = ['date', 'method', 'supplier']
+    search_fields = ['supplier__name', 'note']
+    ordering = ['-date', '-created_at']
+    autocomplete_fields = ['supplier']

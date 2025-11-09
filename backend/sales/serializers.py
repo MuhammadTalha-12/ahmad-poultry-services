@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction, Supplier, SupplierPayment
 from decimal import Decimal
 
 
@@ -29,8 +29,31 @@ class DailyRateSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
 
+class SupplierSerializer(serializers.ModelSerializer):
+    closing_balance = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        read_only=True
+    )
+    
+    class Meta:
+        model = Supplier
+        fields = [
+            'id', 'name', 'phone', 'opening_balance',
+            'is_active', 'closing_balance', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
 class PurchaseSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier.name', read_only=True)
+    supplier_closing_balance = serializers.SerializerMethodField()
     total_cost = serializers.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        read_only=True
+    )
+    borrow_amount = serializers.DecimalField(
         max_digits=12,
         decimal_places=3,
         read_only=True
@@ -39,10 +62,32 @@ class PurchaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Purchase
         fields = [
-            'id', 'date', 'supplier', 'vehicle_number', 'kg', 'cost_rate_per_kg',
-            'total_cost', 'note', 'created_at', 'updated_at'
+            'id', 'date', 'supplier', 'supplier_name', 'vehicle_number', 'kg', 
+            'cost_rate_per_kg', 'amount_paid', 'total_cost', 'borrow_amount',
+            'supplier_closing_balance', 'note', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+    
+    def get_supplier_closing_balance(self, obj):
+        """Get supplier's current closing balance"""
+        if obj.supplier:
+            return obj.supplier.closing_balance
+        return Decimal('0.000')
+    
+    def validate(self, data):
+        """Validate that amount_paid doesn't exceed total_cost"""
+        kg = data.get('kg')
+        cost_rate = data.get('cost_rate_per_kg')
+        amount_paid = data.get('amount_paid', Decimal('0.000'))
+        
+        if kg and cost_rate:
+            total_cost = kg * cost_rate
+            if amount_paid > total_cost:
+                raise serializers.ValidationError(
+                    "Amount paid cannot exceed total purchase cost"
+                )
+        
+        return data
 
 
 class SaleSerializer(serializers.ModelSerializer):
@@ -127,6 +172,19 @@ class CustomerDeductionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'date', 'customer', 'customer_name', 'amount',
             'deduction_type', 'deduction_type_display', 'note', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+
+class SupplierPaymentSerializer(serializers.ModelSerializer):
+    supplier_name = serializers.CharField(source='supplier.name', read_only=True)
+    method_display = serializers.CharField(source='get_method_display', read_only=True)
+    
+    class Meta:
+        model = SupplierPayment
+        fields = [
+            'id', 'date', 'supplier', 'supplier_name', 'amount',
+            'method', 'method_display', 'note', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 

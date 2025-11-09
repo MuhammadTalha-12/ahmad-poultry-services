@@ -21,14 +21,29 @@ export interface DailyRate {
   updated_at: string;
 }
 
+export interface Supplier {
+  id: number;
+  name: string;
+  phone: string;
+  opening_balance: string;
+  closing_balance: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Purchase {
   id: number;
   date: string;
-  supplier: string;
+  supplier: number | null;
+  supplier_name: string;
   vehicle_number: string;
   kg: string;
   cost_rate_per_kg: string;
+  amount_paid: string;
   total_cost: string;
+  borrow_amount: string;
+  supplier_closing_balance: string;
   note: string;
   created_at: string;
   updated_at: string;
@@ -84,6 +99,19 @@ export interface Expense {
   category: 'van_repair' | 'feed' | 'salary' | 'petrol' | 'other';
   category_display: string;
   amount: string;
+  note: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SupplierPayment {
+  id: number;
+  date: string;
+  supplier: number;
+  supplier_name: string;
+  amount: string;
+  method: 'cash' | 'bank' | 'other';
+  method_display: string;
   note: string;
   created_at: string;
   updated_at: string;

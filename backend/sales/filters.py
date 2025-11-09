@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction, Supplier, SupplierPayment
 
 
 class CustomerFilter(filters.FilterSet):
@@ -23,12 +23,23 @@ class DailyRateFilter(filters.FilterSet):
         fields = ['date']
 
 
+class SupplierFilter(filters.FilterSet):
+    """Filter for Supplier model"""
+    name = filters.CharFilter(lookup_expr='icontains')
+    is_active = filters.BooleanFilter()
+    
+    class Meta:
+        model = Supplier
+        fields = ['name', 'is_active']
+
+
 class PurchaseFilter(filters.FilterSet):
     """Filter for Purchase model"""
     date = filters.DateFilter()
     date_from = filters.DateFilter(field_name='date', lookup_expr='gte')
     date_to = filters.DateFilter(field_name='date', lookup_expr='lte')
-    supplier = filters.CharFilter(lookup_expr='icontains')
+    supplier = filters.NumberFilter()
+    supplier_name = filters.CharFilter(field_name='supplier__name', lookup_expr='icontains')
     
     class Meta:
         model = Purchase
@@ -86,4 +97,18 @@ class CustomerDeductionFilter(filters.FilterSet):
     class Meta:
         model = CustomerDeduction
         fields = ['date', 'customer', 'deduction_type']
+
+
+class SupplierPaymentFilter(filters.FilterSet):
+    """Filter for SupplierPayment model"""
+    date = filters.DateFilter()
+    date_from = filters.DateFilter(field_name='date', lookup_expr='gte')
+    date_to = filters.DateFilter(field_name='date', lookup_expr='lte')
+    supplier = filters.NumberFilter()
+    supplier_name = filters.CharFilter(field_name='supplier__name', lookup_expr='icontains')
+    method = filters.ChoiceFilter(choices=SupplierPayment.PAYMENT_METHODS)
+    
+    class Meta:
+        model = SupplierPayment
+        fields = ['date', 'supplier', 'method']
 

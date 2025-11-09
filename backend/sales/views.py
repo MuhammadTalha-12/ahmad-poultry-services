@@ -7,14 +7,16 @@ from django.db.models import Q
 from django.http import FileResponse, HttpResponse
 from django.utils import timezone
 from django.core.management import call_command
-from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction
+from .models import Customer, DailyRate, Purchase, Sale, Payment, Expense, CustomerDeduction, Supplier, SupplierPayment
 from .serializers import (
     CustomerSerializer, DailyRateSerializer, PurchaseSerializer,
-    SaleSerializer, PaymentSerializer, ExpenseSerializer, CustomerDeductionSerializer
+    SaleSerializer, PaymentSerializer, ExpenseSerializer, CustomerDeductionSerializer,
+    SupplierSerializer, SupplierPaymentSerializer
 )
 from .filters import (
     CustomerFilter, PurchaseFilter, SaleFilter,
-    PaymentFilter, ExpenseFilter, DailyRateFilter, CustomerDeductionFilter
+    PaymentFilter, ExpenseFilter, DailyRateFilter, CustomerDeductionFilter,
+    SupplierFilter, SupplierPaymentFilter
 )
 import os
 
@@ -71,14 +73,55 @@ class DailyRateViewSet(viewsets.ModelViewSet):
     ordering = ['-date']
 
 
+class SupplierViewSet(viewsets.ModelViewSet):
+    """ViewSet for Supplier model"""
+    queryset = Supplier.objects.all()
+    serializer_class = SupplierSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = SupplierFilter
+    search_fields = ['name', 'phone']
+    ordering_fields = ['name', 'created_at', 'opening_balance']
+    ordering = ['name']
+
+    @action(detail=True, methods=['get'])
+    def statement(self, request, pk=None):
+        """Get supplier statement with all transactions"""
+        supplier = self.get_object()
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        # Get purchases
+        purchases = supplier.purchases.all()
+        if start_date:
+            purchases = purchases.filter(date__gte=start_date)
+        if end_date:
+            purchases = purchases.filter(date__lte=end_date)
+        
+        # Get supplier payments
+        payments = supplier.supplier_payments.all()
+        if start_date:
+            payments = payments.filter(date__gte=start_date)
+        if end_date:
+            payments = payments.filter(date__lte=end_date)
+        
+        return Response({
+            'supplier': SupplierSerializer(supplier).data,
+            'purchases': PurchaseSerializer(purchases, many=True).data,
+            'payments': SupplierPaymentSerializer(payments, many=True).data,
+            'opening_balance': supplier.opening_balance,
+            'closing_balance': supplier.closing_balance,
+        })
+
+
 class PurchaseViewSet(viewsets.ModelViewSet):
     """ViewSet for Purchase model"""
-    queryset = Purchase.objects.all()
+    queryset = Purchase.objects.select_related('supplier').all()
     serializer_class = PurchaseSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PurchaseFilter
-    search_fields = ['supplier', 'note']
+    search_fields = ['supplier__name', 'vehicle_number', 'note']
     ordering_fields = ['date', 'kg', 'cost_rate_per_kg', 'created_at']
     ordering = ['-date', '-created_at']
 
@@ -140,6 +183,18 @@ class CustomerDeductionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = CustomerDeductionFilter
     search_fields = ['customer__name', 'note']
+    ordering_fields = ['date', 'amount', 'created_at']
+    ordering = ['-date', '-created_at']
+
+
+class SupplierPaymentViewSet(viewsets.ModelViewSet):
+    """ViewSet for SupplierPayment model"""
+    queryset = SupplierPayment.objects.select_related('supplier').all()
+    serializer_class = SupplierPaymentSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = SupplierPaymentFilter
+    search_fields = ['supplier__name', 'note']
     ordering_fields = ['date', 'amount', 'created_at']
     ordering = ['-date', '-created_at']
 
@@ -237,17 +292,21 @@ def backup_status(request):
         # Get current database statistics
         stats = {
             'customers': Customer.objects.count(),
+            'suppliers': Supplier.objects.count(),
             'daily_rates': DailyRate.objects.count(),
             'purchases': Purchase.objects.count(),
             'sales': Sale.objects.count(),
             'payments': Payment.objects.count(),
+            'supplier_payments': SupplierPayment.objects.count(),
             'expenses': Expense.objects.count(),
             'total_records': (
                 Customer.objects.count() +
+                Supplier.objects.count() +
                 DailyRate.objects.count() +
                 Purchase.objects.count() +
                 Sale.objects.count() +
                 Payment.objects.count() +
+                SupplierPayment.objects.count() +
                 Expense.objects.count()
             )
         }

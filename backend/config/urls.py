@@ -8,6 +8,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from sales.views import (
     CustomerViewSet, DailyRateViewSet, PurchaseViewSet,
     SaleViewSet, PaymentViewSet, ExpenseViewSet, CustomerDeductionViewSet,
+    SupplierViewSet, SupplierPaymentViewSet,
     backup_database, backup_status
 )
 from reports.views import (
@@ -18,10 +19,12 @@ from .views import api_root, health_check
 # Create router for viewsets
 router = DefaultRouter()
 router.register(r'customers', CustomerViewSet, basename='customer')
+router.register(r'suppliers', SupplierViewSet, basename='supplier')
 router.register(r'daily-rates', DailyRateViewSet, basename='dailyrate')
 router.register(r'purchases', PurchaseViewSet, basename='purchase')
 router.register(r'sales', SaleViewSet, basename='sale')
 router.register(r'payments', PaymentViewSet, basename='payment')
+router.register(r'supplier-payments', SupplierPaymentViewSet, basename='supplierpayment')
 router.register(r'expenses', ExpenseViewSet, basename='expense')
 router.register(r'customer-deductions', CustomerDeductionViewSet, basename='customerdeduction')
 

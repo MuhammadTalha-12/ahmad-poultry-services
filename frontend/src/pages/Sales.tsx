@@ -234,21 +234,6 @@ export default function Sales() {
       valueFormatter: (value) => `${parseFloat(value).toFixed(2)}`
     },
     { 
-      field: 'customer_closing_balance', 
-      headerName: 'Closing Balance', 
-      width: 150,
-      valueFormatter: (value) => {
-        const bal = parseFloat(value || '0');
-        return `${bal.toFixed(2)}`;
-      },
-      cellClassName: (params) => {
-        const balance = parseFloat(params.value || '0');
-        if (balance > 0) return 'text-red-600'; // Customer owes you
-        if (balance < 0) return 'text-green-600'; // You owe customer
-        return '';
-      }
-    },
-    { 
       field: 'amount_received', 
       headerName: 'Received', 
       width: 120,
@@ -266,6 +251,21 @@ export default function Sales() {
             {value.toFixed(2)}
           </span>
         );
+      }
+    },
+    { 
+      field: 'customer_closing_balance', 
+      headerName: 'Closing Balance', 
+      width: 150,
+      valueFormatter: (value) => {
+        const bal = parseFloat(value || '0');
+        return `${bal.toFixed(2)}`;
+      },
+      cellClassName: (params) => {
+        const balance = parseFloat(params.value || '0');
+        if (balance > 0) return 'text-red-600'; // Customer owes you
+        if (balance < 0) return 'text-green-600'; // You owe customer
+        return '';
       }
     },
     { 

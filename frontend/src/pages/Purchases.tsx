@@ -14,6 +14,7 @@ import {
   Alert,
   Snackbar,
   InputAdornment,
+  MenuItem,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -22,7 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import api from '../services/api';
-import type { Purchase, PaginatedResponse } from '../types';
+import type { Purchase, Supplier, PaginatedResponse } from '../types';
 
 export default function Purchases() {
   const [open, setOpen] = useState(false);
@@ -34,6 +35,7 @@ export default function Purchases() {
     vehicle_number: '',
     kg: '',
     cost_rate_per_kg: '',
+    amount_paid: '0',
     note: '',
   });
   const [dateFilter, setDateFilter] = useState({
@@ -59,13 +61,28 @@ export default function Purchases() {
     },
   });
 
+  const { data: suppliers } = useQuery<PaginatedResponse<Supplier>>({
+    queryKey: ['suppliers-active'],
+    queryFn: async () => {
+      const response = await api.get('/api/suppliers/?is_active=true&page_size=1000');
+      console.log('Suppliers for purchases:', response.data);
+      return response.data;
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (newPurchase: typeof formData) => {
-      const response = await api.post('/api/purchases/', {
-        ...newPurchase,
+      const payload = {
+        date: newPurchase.date,
+        supplier: newPurchase.supplier ? parseInt(newPurchase.supplier) : null,
+        vehicle_number: newPurchase.vehicle_number,
         kg: parseFloat(newPurchase.kg),
         cost_rate_per_kg: parseFloat(newPurchase.cost_rate_per_kg),
-      });
+        amount_paid: parseFloat(newPurchase.amount_paid) || 0,
+        note: newPurchase.note || '',
+      };
+      console.log('Creating purchase with payload:', payload);
+      const response = await api.post('/api/purchases/', payload);
       return response.data;
     },
     onSuccess: async () => {
@@ -87,11 +104,16 @@ export default function Purchases() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: typeof formData }) => {
-      const response = await api.put(`/api/purchases/${id}/`, {
-        ...data,
+      const payload = {
+        date: data.date,
+        supplier: data.supplier ? parseInt(data.supplier) : null,
+        vehicle_number: data.vehicle_number,
         kg: parseFloat(data.kg),
         cost_rate_per_kg: parseFloat(data.cost_rate_per_kg),
-      });
+        amount_paid: parseFloat(data.amount_paid) || 0,
+        note: data.note || '',
+      };
+      const response = await api.put(`/api/purchases/${id}/`, payload);
       return response.data;
     },
     onSuccess: async () => {
@@ -132,7 +154,7 @@ export default function Purchases() {
 
   const columns: GridColDef[] = [
     { field: 'date', headerName: 'Date', width: 110 },
-    { field: 'supplier', headerName: 'Supplier', flex: 1 },
+    { field: 'supplier_name', headerName: 'Supplier', flex: 1 },
     { field: 'vehicle_number', headerName: 'Vehicle', width: 100 },
     { field: 'kg', headerName: 'KG', width: 100 },
     { field: 'cost_rate_per_kg', headerName: 'Rate/KG', width: 100 },
@@ -141,6 +163,43 @@ export default function Purchases() {
       headerName: 'Total Cost', 
       width: 120,
       valueFormatter: (value) => `${parseFloat(value).toFixed(2)}`
+    },
+    { 
+      field: 'amount_paid', 
+      headerName: 'Paid', 
+      width: 100,
+      valueFormatter: (value) => `${parseFloat(value).toFixed(2)}`
+    },
+    { 
+      field: 'borrow_amount', 
+      headerName: 'Borrow', 
+      width: 100,
+      valueFormatter: (value) => `${parseFloat(value).toFixed(2)}`,
+      renderCell: (params) => {
+        const value = parseFloat(params.value);
+        return (
+          <span style={{ color: value > 0 ? 'red' : 'black' }}>
+            {value.toFixed(2)}
+          </span>
+        );
+      }
+    },
+    { 
+      field: 'supplier_closing_balance', 
+      headerName: 'Closing Balance', 
+      width: 150,
+      valueFormatter: (value) => {
+        const bal = parseFloat(value || '0');
+        return `${bal.toFixed(2)}`;
+      },
+      renderCell: (params) => {
+        const balance = parseFloat(params.value || '0');
+        return (
+          <span style={{ color: balance > 0 ? 'red' : balance < 0 ? 'green' : 'black' }}>
+            {balance.toFixed(2)}
+          </span>
+        );
+      }
     },
     {
       field: 'actions',
@@ -173,10 +232,11 @@ export default function Purchases() {
     setSelectedPurchase(purchase);
     setFormData({
       date: purchase.date,
-      supplier: purchase.supplier,
+      supplier: purchase.supplier?.toString() || '',
       vehicle_number: purchase.vehicle_number || '',
       kg: purchase.kg,
       cost_rate_per_kg: purchase.cost_rate_per_kg,
+      amount_paid: purchase.amount_paid,
       note: purchase.note,
     });
     setOpen(true);
@@ -204,6 +264,7 @@ export default function Purchases() {
       vehicle_number: '',
       kg: '', 
       cost_rate_per_kg: '', 
+      amount_paid: '0',
       note: '' 
     });
   };
@@ -222,6 +283,10 @@ export default function Purchases() {
   const totalCost = formData.kg && formData.cost_rate_per_kg
     ? (parseFloat(formData.kg) * parseFloat(formData.cost_rate_per_kg)).toFixed(3)
     : '0.000';
+
+  const borrowAmount = formData.kg && formData.cost_rate_per_kg && formData.amount_paid
+    ? ((parseFloat(formData.kg) * parseFloat(formData.cost_rate_per_kg)) - parseFloat(formData.amount_paid)).toFixed(3)
+    : totalCost;
 
   return (
     <Box>
@@ -317,10 +382,23 @@ export default function Purchases() {
               />
               <TextField 
                 fullWidth 
+                select
                 label="Supplier" 
                 value={formData.supplier} 
                 onChange={(e) => setFormData({ ...formData, supplier: e.target.value })} 
-              />
+                helperText={!suppliers?.results?.length ? "Loading suppliers..." : `${suppliers.results.length} suppliers available`}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {suppliers?.results && suppliers.results.length > 0 ? (
+                  suppliers.results.map((supplier) => (
+                    <MenuItem key={supplier.id} value={supplier.id}>
+                      {supplier.name}
+                    </MenuItem>
+                  ))
+                ) : null}
+              </TextField>
               <TextField 
                 fullWidth 
                 label="Vehicle Number" 
@@ -351,6 +429,15 @@ export default function Purchases() {
               </Box>
               <TextField 
                 fullWidth 
+                label="Amount Paid" 
+                type="number" 
+                value={formData.amount_paid} 
+                onChange={(e) => setFormData({ ...formData, amount_paid: e.target.value })} 
+                inputProps={{ step: '0.001', min: '0' }}
+                helperText="Amount paid to supplier for this purchase"
+              />
+              <TextField 
+                fullWidth 
                 label="Note" 
                 value={formData.note} 
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })} 
@@ -360,6 +447,9 @@ export default function Purchases() {
               <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1 }}>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Total Cost:</strong> {totalCost} PKR
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Borrow Amount:</strong> <span style={{ color: parseFloat(borrowAmount) > 0 ? 'red' : 'black' }}>{borrowAmount} PKR</span>
                 </Typography>
               </Box>
             </Box>

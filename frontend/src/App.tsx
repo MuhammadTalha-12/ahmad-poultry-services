@@ -8,10 +8,12 @@ import { useAuthStore } from './stores/authStore';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
+import Suppliers from './pages/Suppliers';
 import DailyRates from './pages/DailyRates';
 import Sales from './pages/Sales';
 import Purchases from './pages/Purchases';
 import Payments from './pages/Payments';
+import SupplierPayments from './pages/SupplierPayments';
 import CustomerDeductions from './pages/CustomerDeductions';
 import Expenses from './pages/Expenses';
 import Reports from './pages/Reports';
@@ -61,10 +63,12 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="customers" element={<Customers />} />
+              <Route path="suppliers" element={<Suppliers />} />
               <Route path="daily-rates" element={<DailyRates />} />
               <Route path="sales" element={<Sales />} />
               <Route path="purchases" element={<Purchases />} />
               <Route path="payments" element={<Payments />} />
+              <Route path="supplier-payments" element={<SupplierPayments />} />
               <Route path="customer-deductions" element={<CustomerDeductions />} />
               <Route path="expenses" element={<Expenses />} />
               <Route path="reports" element={<Reports />} />

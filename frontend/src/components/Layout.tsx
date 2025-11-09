@@ -17,9 +17,11 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
+import BusinessIcon from '@mui/icons-material/Business';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import PaymentIcon from '@mui/icons-material/Payment';
+import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import AssessmentIcon from '@mui/icons-material/Assessment';
@@ -32,10 +34,12 @@ const drawerWidth = 240;
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Customers', icon: <PeopleIcon />, path: '/customers' },
+  { text: 'Suppliers', icon: <BusinessIcon />, path: '/suppliers' },
   { text: 'Daily Rates', icon: <AttachMoneyIcon />, path: '/daily-rates' },
   { text: 'Sales', icon: <ShoppingCartIcon />, path: '/sales' },
   { text: 'Purchases', icon: <LocalShippingIcon />, path: '/purchases' },
   { text: 'Payments', icon: <PaymentIcon />, path: '/payments' },
+  { text: 'Supplier Payments', icon: <MoneyOffIcon />, path: '/supplier-payments' },
   { text: 'Deductions', icon: <RemoveCircleOutlineIcon />, path: '/customer-deductions' },
   { text: 'Expenses', icon: <ReceiptIcon />, path: '/expenses' },
   { text: 'Reports', icon: <AssessmentIcon />, path: '/reports' },

@@ -77,10 +77,65 @@ class DailyRate(models.Model):
         return f"{self.date} - Cost: {self.default_cost_rate}, Sale: {self.default_sale_rate}"
 
 
+class Supplier(models.Model):
+    """Supplier model to store supplier information"""
+    name = models.CharField(max_length=255, unique=True, db_index=True)
+    phone = models.CharField(max_length=20, blank=True)
+    opening_balance = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=Decimal('0.000'),
+        validators=[MinValueValidator(Decimal('0.000'))],
+        help_text="Opening balance we owe to supplier"
+    )
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['name']
+        indexes = [
+            models.Index(fields=['name']),
+            models.Index(fields=['is_active']),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def closing_balance(self):
+        """Calculate supplier's closing balance (what we owe them)"""
+        from django.db.models import F, Sum
+        
+        # Calculate total purchases: sum of (kg * cost_rate_per_kg) for each purchase
+        total_purchases = self.purchases.aggregate(
+            total=Sum(F('kg') * F('cost_rate_per_kg'))
+        )['total'] or Decimal('0.000')
+        
+        # Calculate total paid to supplier (from purchases)
+        total_paid_in_purchases = self.purchases.aggregate(
+            total=Sum('amount_paid')
+        )['total'] or Decimal('0.000')
+        
+        # Calculate total standalone payments to supplier
+        total_standalone_payments = self.supplier_payments.aggregate(
+            total=Sum('amount')
+        )['total'] or Decimal('0.000')
+        
+        # Closing balance = opening + total purchases - total paid in purchases - standalone payments
+        return self.opening_balance + total_purchases - total_paid_in_purchases - total_standalone_payments
+
+
 class Purchase(models.Model):
     """Track daily purchases from poultry farms"""
     date = models.DateField(db_index=True)
-    supplier = models.CharField(max_length=255, blank=True)
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name='purchases',
+        null=True,
+        blank=True
+    )
     vehicle_number = models.CharField(max_length=50, blank=True, help_text="Van/Vehicle number")
     kg = models.DecimalField(
         max_digits=10,
@@ -92,6 +147,13 @@ class Purchase(models.Model):
         decimal_places=3,
         validators=[MinValueValidator(Decimal('0.000'))]
     )
+    amount_paid = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        default=Decimal('0.000'),
+        validators=[MinValueValidator(Decimal('0.000'))],
+        help_text="Amount paid to supplier for this purchase"
+    )
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -100,16 +162,30 @@ class Purchase(models.Model):
         ordering = ['-date', '-created_at']
         indexes = [
             models.Index(fields=['date']),
+            models.Index(fields=['supplier', 'date']),
             models.Index(fields=['-date', '-created_at']),
         ]
 
     def __str__(self):
-        return f"{self.date} - {self.kg}kg @ {self.cost_rate_per_kg}/kg"
+        supplier_name = self.supplier.name if self.supplier else "No Supplier"
+        return f"{self.date} - {supplier_name} - {self.kg}kg @ {self.cost_rate_per_kg}/kg"
 
     @property
     def total_cost(self):
         """Calculate total cost of purchase"""
         return self.kg * self.cost_rate_per_kg
+    
+    @property
+    def borrow_amount(self):
+        """Calculate outstanding amount owed to supplier"""
+        return self.total_cost - self.amount_paid
+    
+    @property
+    def supplier_closing_balance(self):
+        """Get supplier's closing balance at time of this purchase"""
+        if self.supplier:
+            return self.supplier.closing_balance
+        return Decimal('0.000')
 
 
 class Sale(models.Model):
@@ -321,3 +397,40 @@ class CustomerDeduction(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.customer.name} - Deduction: {self.amount}"
+
+
+class SupplierPayment(models.Model):
+    """Track standalone payments to suppliers (outside of purchase transactions)"""
+    PAYMENT_METHODS = [
+        ('cash', 'Cash'),
+        ('bank', 'Bank Transfer'),
+        ('other', 'Other'),
+    ]
+
+    date = models.DateField(db_index=True)
+    supplier = models.ForeignKey(
+        Supplier,
+        on_delete=models.PROTECT,
+        related_name='supplier_payments'
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal('0.001'))],
+        help_text="Payment amount to supplier"
+    )
+    method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='cash')
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['supplier', 'date']),
+            models.Index(fields=['-date', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.date} - {self.supplier.name} - Payment: {self.amount}"
