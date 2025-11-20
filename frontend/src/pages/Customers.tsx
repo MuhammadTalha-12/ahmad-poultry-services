@@ -35,18 +35,23 @@ export default function Customers() {
   const queryClient = useQueryClient();
 
   const { data, isLoading, error: queryError } = useQuery<PaginatedResponse<Customer>>({
-    queryKey: ['customers'],
+    queryKey: ['customers', 'all'],
     queryFn: async () => {
       try {
         // Fetch ALL customers with no pagination limit
         const response = await api.get('/api/customers/?page_size=10000');
         console.log('Customers API response:', response.data);
+        console.log('Total customers fetched:', response.data?.count || response.data?.results?.length || 0);
         return response.data;
       } catch (error: any) {
         console.error('Error fetching customers:', error);
         throw error;
       }
     },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   const createMutation = useMutation({
@@ -67,6 +72,7 @@ export default function Customers() {
       // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-active'] });
+      queryClient.removeQueries({ queryKey: ['customers'] });
       setOpen(false);
       setFormData({ name: '', phone: '', address: '', opening_balance: '0' });
       setSnackbar({ open: true, message: 'Customer created successfully!', severity: 'success' });
@@ -97,6 +103,7 @@ export default function Customers() {
       // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-active'] });
+      queryClient.removeQueries({ queryKey: ['customers'] });
       setOpen(false);
       setEditMode(false);
       setSelectedCustomer(null);
@@ -120,6 +127,7 @@ export default function Customers() {
       // Invalidate all customer-related queries
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['customers-active'] });
+      queryClient.removeQueries({ queryKey: ['customers'] });
       setSnackbar({ open: true, message: 'Customer deleted successfully!', severity: 'success' });
     },
     onError: (error: any) => {

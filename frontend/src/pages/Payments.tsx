@@ -58,18 +58,21 @@ export default function Payments() {
   });
 
   const { data: customers } = useQuery<PaginatedResponse<Customer>>({ 
-    queryKey: ['customers-active'], 
+    queryKey: ['customers-active', 'all'], 
     queryFn: async () => {
       try {
         // Fetch ALL active customers (no pagination limit)
         const response = await api.get('/api/customers/?is_active=true&page_size=10000');
         console.log('Customers for payments:', response.data);
+        console.log('Total customers fetched for payments:', response.data?.count || response.data?.results?.length || 0);
         return response.data;
       } catch (error) {
         console.error('Error fetching customers for payments:', error);
         throw error;
       }
-    }
+    },
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const createMutation = useMutation({
