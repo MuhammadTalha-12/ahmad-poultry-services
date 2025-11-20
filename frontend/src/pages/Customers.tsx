@@ -38,7 +38,8 @@ export default function Customers() {
     queryKey: ['customers'],
     queryFn: async () => {
       try {
-        const response = await api.get('/api/customers/');
+        // Fetch ALL customers with no pagination limit
+        const response = await api.get('/api/customers/?page_size=10000');
         console.log('Customers API response:', response.data);
         return response.data;
       } catch (error: any) {

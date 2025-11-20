@@ -43,7 +43,8 @@ export default function DailyRates() {
   const { data: rates, isLoading } = useQuery<{ results: DailyRate[] }>({
     queryKey: ['daily-rates'],
     queryFn: async () => {
-      const response = await api.get('/api/daily-rates/?page_size=100');
+      // Fetch ALL daily rates (no pagination limit)
+      const response = await api.get('/api/daily-rates/?page_size=10000');
       return response.data;
     },
   });

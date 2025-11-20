@@ -59,7 +59,8 @@ export default function SupplierPayments() {
   const { data: suppliers } = useQuery<PaginatedResponse<Supplier>>({
     queryKey: ['suppliers-active'],
     queryFn: async () => {
-      const response = await api.get('/api/suppliers/?is_active=true&page_size=1000');
+      // Fetch ALL active suppliers (no pagination limit)
+      const response = await api.get('/api/suppliers/?is_active=true&page_size=10000');
       console.log('Suppliers for payments:', response.data);
       return response.data;
     },

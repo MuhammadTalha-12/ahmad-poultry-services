@@ -39,7 +39,8 @@ export default function Suppliers() {
   const { data, isLoading } = useQuery<PaginatedResponse<Supplier>>({
     queryKey: ['suppliers'],
     queryFn: async () => {
-      const response = await api.get('/api/suppliers/?page_size=1000');
+      // Fetch ALL suppliers with no pagination limit
+      const response = await api.get('/api/suppliers/?page_size=10000');
       return response.data;
     },
   });
