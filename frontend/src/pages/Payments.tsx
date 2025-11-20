@@ -15,6 +15,7 @@ import {
   Alert,
   Snackbar,
   InputAdornment,
+  Autocomplete,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -60,7 +61,8 @@ export default function Payments() {
     queryKey: ['customers-active'], 
     queryFn: async () => {
       try {
-        const response = await api.get('/api/customers/?is_active=true&page_size=1000');
+        // Fetch ALL active customers (no pagination limit)
+        const response = await api.get('/api/customers/?is_active=true&page_size=10000');
         console.log('Customers for payments:', response.data);
         return response.data;
       } catch (error) {
@@ -317,23 +319,26 @@ export default function Payments() {
                   ),
                 }}
               />
-              <TextField 
-                fullWidth 
-                select 
-                label="Customer" 
-                value={formData.customer} 
-                onChange={(e) => setFormData({ ...formData, customer: e.target.value })} 
-                required
-                helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available`}
-              >
-                {customers?.results && customers.results.length > 0 ? (
-                  customers.results.map((c) => (
-                    <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>No customers found</MenuItem>
+              <Autocomplete
+                fullWidth
+                options={customers?.results || []}
+                getOptionLabel={(option) => option.name}
+                value={customers?.results?.find((c) => c.id === parseInt(formData.customer)) || null}
+                onChange={(_, newValue) => {
+                  setFormData({ ...formData, customer: newValue ? String(newValue.id) : '' });
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Customer"
+                    required
+                    helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available - Type to search`}
+                  />
                 )}
-              </TextField>
+                loading={!customers}
+                noOptionsText="No customers found"
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+              />
               <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2 }}>
                 <TextField 
                   fullWidth 

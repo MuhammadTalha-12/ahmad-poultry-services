@@ -10,11 +10,11 @@ import {
   DialogContent,
   DialogActions,
   Paper,
-  MenuItem,
   IconButton,
   Alert,
   Snackbar,
   InputAdornment,
+  Autocomplete,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -65,8 +65,8 @@ export default function Sales() {
     queryKey: ['customers-active'],
     queryFn: async () => {
       try {
-        // Fetch all active customers (increase page_size to get all)
-        const response = await api.get('/api/customers/?is_active=true&page_size=1000');
+        // Fetch ALL active customers (no pagination limit)
+        const response = await api.get('/api/customers/?is_active=true&page_size=10000');
         console.log('Customers for sales:', response.data);
         return response.data;
       } catch (error) {
@@ -456,25 +456,26 @@ export default function Sales() {
                     ),
                   }}
                 />
-                <TextField
+                <Autocomplete
                   fullWidth
-                  select
-                  label="Customer"
-                  value={formData.customer}
-                  onChange={(e) => setFormData({ ...formData, customer: e.target.value })}
-                  required
-                  helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available`}
-                >
-                  {customers?.results && customers.results.length > 0 ? (
-                    customers.results.map((customer) => (
-                      <MenuItem key={customer.id} value={customer.id}>
-                        {customer.name}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>No customers found</MenuItem>
+                  options={customers?.results || []}
+                  getOptionLabel={(option) => option.name}
+                  value={customers?.results?.find((c) => c.id === parseInt(formData.customer)) || null}
+                  onChange={(_, newValue) => {
+                    setFormData({ ...formData, customer: newValue ? String(newValue.id) : '' });
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Customer"
+                      required
+                      helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available - Type to search`}
+                    />
                   )}
-                </TextField>
+                  loading={!customers}
+                  noOptionsText="No customers found"
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                />
                 <TextField
                   fullWidth
                   label="KG"
