@@ -36,7 +36,7 @@ export function CustomerAutocomplete({
   const [options, setOptions] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   // Load initial customers
   useEffect(() => {
@@ -79,7 +79,7 @@ export function CustomerAutocomplete({
   }, [options.length]);
 
   // Handle input change with debouncing
-  const handleInputChange = (event: React.SyntheticEvent, newInputValue: string) => {
+  const handleInputChange = (_event: React.SyntheticEvent, newInputValue: string) => {
     setInputValue(newInputValue);
 
     // Clear existing timeout
@@ -96,7 +96,7 @@ export function CustomerAutocomplete({
   };
 
   // Handle selection change
-  const handleValueChange = (event: React.SyntheticEvent, newValue: Customer | null) => {
+  const handleValueChange = (_event: React.SyntheticEvent, newValue: Customer | null) => {
     onChange(newValue);
   };
 
@@ -107,9 +107,8 @@ export function CustomerAutocomplete({
 
   // Custom option rendering
   const renderOption = (props: React.HTMLAttributes<HTMLLIElement>, option: Customer) => {
-    const { key, ...optionProps } = props;
     return (
-      <li key={option.id} {...optionProps}>
+      <li key={option.id} {...props}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ fontWeight: 500 }}>{option.name}</span>
           {option.phone && (
@@ -128,7 +127,7 @@ export function CustomerAutocomplete({
   };
 
   // Auto-select if only one option matches
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
       const matchingOptions = options.filter(option => 
