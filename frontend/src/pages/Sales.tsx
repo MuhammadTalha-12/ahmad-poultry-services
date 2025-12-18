@@ -15,6 +15,8 @@ import {
   Snackbar,
   InputAdornment,
   Autocomplete,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -43,6 +45,11 @@ export default function Sales() {
     end_date: '',
   });
   const [showFilter, setShowFilter] = useState(false);
+  const [analyticsFilter, setAnalyticsFilter] = useState({
+    start_date: '',
+    end_date: '',
+  });
+  const [showAnalytics, setShowAnalytics] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' as 'success' | 'error' });
   const queryClient = useQueryClient();
 
@@ -52,6 +59,26 @@ export default function Sales() {
     if (dateFilter.end_date) params.append('date_to', dateFilter.end_date);
     return params.toString() ? `?${params.toString()}` : '';
   };
+
+  const buildAnalyticsQueryString = () => {
+    const params = new URLSearchParams();
+    if (analyticsFilter.start_date) params.append('start_date', analyticsFilter.start_date);
+    if (analyticsFilter.end_date) params.append('end_date', analyticsFilter.end_date);
+    return params.toString() ? `?${params.toString()}` : '';
+  };
+
+  // Fetch sales analytics data
+  const { data: salesAnalytics, isLoading: analyticsLoading } = useQuery({
+    queryKey: ['sales-analytics', analyticsFilter],
+    queryFn: async () => {
+      if (!analyticsFilter.start_date || !analyticsFilter.end_date) {
+        return null;
+      }
+      const response = await api.get(`/api/reports/sales-analytics${buildAnalyticsQueryString()}`);
+      return response.data;
+    },
+    enabled: !!analyticsFilter.start_date && !!analyticsFilter.end_date,
+  });
 
   const { data: sales, isLoading } = useQuery<PaginatedResponse<Sale>>({
     queryKey: ['sales', dateFilter],
@@ -377,6 +404,12 @@ export default function Sales() {
           >
             Filter
           </Button>
+          <Button 
+            variant="outlined" 
+            onClick={() => setShowAnalytics(!showAnalytics)}
+          >
+            Analytics
+          </Button>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
             Add Sale
           </Button>
@@ -422,6 +455,112 @@ export default function Sales() {
               Clear Filter
             </Button>
           </Box>
+        </Paper>
+      )}
+
+      {showAnalytics && (
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Sales Analytics</Typography>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 2, alignItems: 'center', mb: 2 }}>
+            <TextField
+              label="Start Date"
+              type="date"
+              value={analyticsFilter.start_date}
+              onChange={(e) => setAnalyticsFilter({ ...analyticsFilter, start_date: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { cursor: 'pointer' } }}
+              size="small"
+            />
+            <TextField
+              label="End Date"
+              type="date"
+              value={analyticsFilter.end_date}
+              onChange={(e) => setAnalyticsFilter({ ...analyticsFilter, end_date: e.target.value })}
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ style: { cursor: 'pointer' } }}
+              size="small"
+            />
+            <Button variant="outlined" onClick={() => setAnalyticsFilter({ start_date: '', end_date: '' })}>
+              Clear Analytics
+            </Button>
+          </Box>
+          
+          {analyticsLoading && (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography>Loading analytics...</Typography>
+            </Box>
+          )}
+          
+          {salesAnalytics && (
+            <Box sx={{ mt: 2 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr 1fr' }, gap: 2, mb: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>Total KGs Sold</Typography>
+                    <Typography variant="h4" color="primary">
+                      {parseFloat(salesAnalytics.analytics.total_kgs_sold).toFixed(3)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>Total Sale Price</Typography>
+                    <Typography variant="h4" color="success.main">
+                      {parseFloat(salesAnalytics.analytics.total_sale_price).toFixed(2)} PKR
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>Average Rate/KG</Typography>
+                    <Typography variant="h4" color="info.main">
+                      {parseFloat(salesAnalytics.analytics.average_rate_per_kg).toFixed(3)}
+                    </Typography>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent>
+                    <Typography color="textSecondary" gutterBottom>Total Profit</Typography>
+                    <Typography variant="h4" color="secondary.main">
+                      {parseFloat(salesAnalytics.analytics.total_profit).toFixed(2)} PKR
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
+              
+              {salesAnalytics.daily_breakdown && Object.keys(salesAnalytics.daily_breakdown).length > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="h6" sx={{ mb: 1 }}>Daily Breakdown</Typography>
+                  <Paper sx={{ p: 2, maxHeight: 300, overflow: 'auto' }}>
+                    {Object.entries(salesAnalytics.daily_breakdown).map(([date, data]: [string, any]) => (
+                      <Box key={date} sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #eee' }}>
+                        <Typography variant="body2">{date}</Typography>
+                        <Typography variant="body2">
+                          {parseFloat(data.total_kgs).toFixed(3)} KGs - {parseFloat(data.total_sale_price).toFixed(2)} PKR
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Paper>
+                </Box>
+              )}
+              
+              {salesAnalytics.top_customers && Object.keys(salesAnalytics.top_customers).length > 0 && (
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 1 }}>Top Customers</Typography>
+                  <Paper sx={{ p: 2, maxHeight: 300, overflow: 'auto' }}>
+                    {Object.entries(salesAnalytics.top_customers).slice(0, 10).map(([customer, data]: [string, any]) => (
+                      <Box key={customer} sx={{ display: 'flex', justifyContent: 'space-between', py: 1, borderBottom: '1px solid #eee' }}>
+                        <Typography variant="body2">{customer}</Typography>
+                        <Typography variant="body2">
+                          {parseFloat(data.total_kgs).toFixed(3)} KGs - {parseFloat(data.total_sale_price).toFixed(2)} PKR
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Paper>
+                </Box>
+              )}
+            </Box>
+          )}
         </Paper>
       )}
 

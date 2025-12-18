@@ -240,3 +240,108 @@ class CustomerReportView(APIView):
             'total_kg': total_kg,
             'outstanding': total_sales_amount - total_payments,
         })
+
+
+class SalesAnalyticsView(APIView):
+    """Generate sales analytics for selected dates - total kgs sold and sale price"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        if not start_date or not end_date:
+            return Response({
+                'error': 'start_date and end_date are required'
+            }, status=400)
+        
+        try:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({
+                'error': 'Invalid date format. Use YYYY-MM-DD'
+            }, status=400)
+        
+        # Get sales within date range
+        sales = Sale.objects.filter(date__gte=start_date, date__lte=end_date)
+        
+        if not sales.exists():
+            return Response({
+                'date_range': {
+                    'start_date': start_date,
+                    'end_date': end_date,
+                },
+                'analytics': {
+                    'total_kgs_sold': Decimal('0.000'),
+                    'total_sale_price': Decimal('0.000'),
+                    'total_sales_count': 0,
+                    'average_rate_per_kg': Decimal('0.000'),
+                    'total_profit': Decimal('0.000'),
+                },
+                'message': 'No sales found for the selected date range'
+            })
+        
+        # Calculate analytics
+        total_kgs_sold = sales.aggregate(total=Sum('kg'))['total'] or Decimal('0.000')
+        total_sale_price = sum([s.total_amount for s in sales]) or Decimal('0.000')
+        total_sales_count = sales.count()
+        total_profit = sum([s.profit for s in sales]) or Decimal('0.000')
+        
+        # Calculate average rate per kg
+        average_rate_per_kg = Decimal('0.000')
+        if total_kgs_sold > 0:
+            average_rate_per_kg = total_sale_price / total_kgs_sold
+        
+        # Daily breakdown
+        daily_breakdown = {}
+        for sale in sales:
+            date_str = str(sale.date)
+            if date_str not in daily_breakdown:
+                daily_breakdown[date_str] = {
+                    'total_kgs': Decimal('0.000'),
+                    'total_sale_price': Decimal('0.000'),
+                    'sales_count': 0,
+                    'total_profit': Decimal('0.000'),
+                }
+            daily_breakdown[date_str]['total_kgs'] += sale.kg
+            daily_breakdown[date_str]['total_sale_price'] += sale.total_amount
+            daily_breakdown[date_str]['sales_count'] += 1
+            daily_breakdown[date_str]['total_profit'] += sale.profit
+        
+        # Top customers by sales volume
+        customer_breakdown = {}
+        for sale in sales:
+            customer_name = sale.customer.name
+            if customer_name not in customer_breakdown:
+                customer_breakdown[customer_name] = {
+                    'total_kgs': Decimal('0.000'),
+                    'total_sale_price': Decimal('0.000'),
+                    'sales_count': 0,
+                }
+            customer_breakdown[customer_name]['total_kgs'] += sale.kg
+            customer_breakdown[customer_name]['total_sale_price'] += sale.total_amount
+            customer_breakdown[customer_name]['sales_count'] += 1
+        
+        # Sort top customers by total sale price
+        top_customers = sorted(
+            customer_breakdown.items(), 
+            key=lambda x: x[1]['total_sale_price'], 
+            reverse=True
+        )[:10]  # Top 10 customers
+        
+        return Response({
+            'date_range': {
+                'start_date': start_date,
+                'end_date': end_date,
+            },
+            'analytics': {
+                'total_kgs_sold': total_kgs_sold,
+                'total_sale_price': total_sale_price,
+                'total_sales_count': total_sales_count,
+                'average_rate_per_kg': average_rate_per_kg,
+                'total_profit': total_profit,
+            },
+            'daily_breakdown': daily_breakdown,
+            'top_customers': dict(top_customers),
+        })
