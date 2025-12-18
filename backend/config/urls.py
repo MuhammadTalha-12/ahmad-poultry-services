@@ -12,7 +12,8 @@ from sales.views import (
     backup_database, backup_status
 )
 from reports.views import (
-    DailyReportView, PeriodReportView, ExpenseReportView, CustomerReportView
+    DailyReportView, PeriodReportView, ExpenseReportView, CustomerReportView,
+    SalesAnalyticsView
 )
 from .views import api_root, health_check
 
@@ -48,6 +49,7 @@ urlpatterns = [
     path('api/reports/daily/', DailyReportView.as_view(), name='daily-report'),
     path('api/reports/period/', PeriodReportView.as_view(), name='period-report'),
     path('api/reports/expenses/', ExpenseReportView.as_view(), name='expense-report'),
+    path('api/reports/sales-analytics/', SalesAnalyticsView.as_view(), name='sales-analytics'),
     path('api/customers/<int:customer_id>/report/', CustomerReportView.as_view(), name='customer-report'),
     
     # Backup
