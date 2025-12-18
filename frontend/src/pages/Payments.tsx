@@ -15,7 +15,6 @@ import {
   Alert,
   Snackbar,
   InputAdornment,
-  Autocomplete,
 } from '@mui/material';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,11 +24,13 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import api from '../services/api';
 import type { Payment, Customer, PaginatedResponse } from '../types';
+import CustomerAutocomplete from '../components/CustomerAutocomplete';
 
 export default function Payments() {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState({ 
     date: new Date().toISOString().split('T')[0], 
     customer: '', 
@@ -55,24 +56,6 @@ export default function Payments() {
   const { data, isLoading } = useQuery<PaginatedResponse<Payment>>({ 
     queryKey: ['payments', dateFilter], 
     queryFn: async () => (await api.get(`/api/payments/${buildQueryString()}`)).data 
-  });
-
-  const { data: customers } = useQuery<PaginatedResponse<Customer>>({ 
-    queryKey: ['customers-active', 'all'], 
-    queryFn: async () => {
-      try {
-        // Fetch ALL active customers (no pagination limit)
-        const response = await api.get('/api/customers/?is_active=true&page_size=10000');
-        console.log('Customers for payments:', response.data);
-        console.log('Total customers fetched for payments:', response.data?.count || response.data?.results?.length || 0);
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching customers for payments:', error);
-        throw error;
-      }
-    },
-    staleTime: 0,
-    gcTime: 0,
   });
 
   const createMutation = useMutation({
@@ -184,6 +167,17 @@ export default function Payments() {
   const handleEdit = (payment: Payment) => {
     setEditMode(true);
     setSelectedPayment(payment);
+    setSelectedCustomer({
+      id: payment.customer,
+      name: payment.customer_name,
+      phone: '',
+      address: '',
+      opening_balance: '',
+      running_balance: '',
+      is_active: true,
+      created_at: '',
+      updated_at: ''
+    });
     setFormData({
       date: payment.date,
       customer: payment.customer.toString(),
@@ -217,6 +211,7 @@ export default function Payments() {
       method: 'cash', 
       note: '' 
     });
+    setSelectedCustomer(null);
   };
 
   const handleClose = () => {
@@ -322,25 +317,14 @@ export default function Payments() {
                   ),
                 }}
               />
-              <Autocomplete
-                fullWidth
-                options={customers?.results || []}
-                getOptionLabel={(option) => option.name}
-                value={customers?.results?.find((c) => c.id === parseInt(formData.customer)) || null}
-                onChange={(_, newValue) => {
-                  setFormData({ ...formData, customer: newValue ? String(newValue.id) : '' });
+              <CustomerAutocomplete
+                value={selectedCustomer}
+                onChange={(customer) => {
+                  setSelectedCustomer(customer);
+                  setFormData({ ...formData, customer: customer ? String(customer.id) : '' });
                 }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Customer"
-                    required
-                    helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available - Type to search`}
-                  />
-                )}
-                loading={!customers}
-                noOptionsText="No customers found"
-                isOptionEqualToValue={(option, value) => option.id === value.id}
+                label="Customer"
+                required
               />
               <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2 }}>
                 <TextField 

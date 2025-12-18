@@ -14,7 +14,6 @@ import {
   Alert,
   Snackbar,
   InputAdornment,
-  Autocomplete,
   Card,
   CardContent,
 } from '@mui/material';
@@ -26,11 +25,13 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import api from '../services/api';
 import type { Sale, Customer, PaginatedResponse, DailyRate } from '../types';
+import CustomerAutocomplete from '../components/CustomerAutocomplete';
 
 export default function Sales() {
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     customer: '',
@@ -86,24 +87,6 @@ export default function Sales() {
       const response = await api.get(`/api/sales/${buildQueryString()}`);
       return response.data;
     },
-  });
-
-  const { data: customers } = useQuery<PaginatedResponse<Customer>>({
-    queryKey: ['customers-active', 'all'],
-    queryFn: async () => {
-      try {
-        // Fetch ALL active customers (no pagination limit)
-        const response = await api.get('/api/customers/?is_active=true&page_size=10000');
-        console.log('Customers for sales:', response.data);
-        console.log('Total customers fetched for sales:', response.data?.count || response.data?.results?.length || 0);
-        return response.data;
-      } catch (error) {
-        console.error('Error fetching customers for sales:', error);
-        throw error;
-      }
-    },
-    staleTime: 0,
-    gcTime: 0,
   });
 
   // Fetch daily rates to auto-fill cost price
@@ -334,6 +317,17 @@ export default function Sales() {
   const handleEdit = (sale: Sale) => {
     setEditMode(true);
     setSelectedSale(sale);
+    setSelectedCustomer({
+      id: sale.customer,
+      name: sale.customer_name,
+      phone: '',
+      address: '',
+      opening_balance: '',
+      running_balance: '',
+      is_active: true,
+      created_at: '',
+      updated_at: ''
+    });
     setFormData({
       date: sale.date,
       customer: sale.customer.toString(),
@@ -371,6 +365,7 @@ export default function Sales() {
       amount_received: '0',
       note: '',
     });
+    setSelectedCustomer(null);
   };
 
   const handleClose = () => {
@@ -599,25 +594,14 @@ export default function Sales() {
                     ),
                   }}
                 />
-                <Autocomplete
-                  fullWidth
-                  options={customers?.results || []}
-                  getOptionLabel={(option) => option.name}
-                  value={customers?.results?.find((c) => c.id === parseInt(formData.customer)) || null}
-                  onChange={(_, newValue) => {
-                    setFormData({ ...formData, customer: newValue ? String(newValue.id) : '' });
+                <CustomerAutocomplete
+                  value={selectedCustomer}
+                  onChange={(customer) => {
+                    setSelectedCustomer(customer);
+                    setFormData({ ...formData, customer: customer ? String(customer.id) : '' });
                   }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Customer"
-                      required
-                      helperText={!customers?.results?.length ? "Loading customers..." : `${customers.results.length} customers available - Type to search`}
-                    />
-                  )}
-                  loading={!customers}
-                  noOptionsText="No customers found"
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  label="Customer"
+                  required
                 />
                 <TextField
                   fullWidth
